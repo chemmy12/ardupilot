@@ -32,8 +32,14 @@ bool MB4_AKS16_Enc::init()
 
 //    spiDevp = probe(*this, std::move(hal.spi->get_device("extspi")));
     // Init MB4....
-    spiDevp = hal.spi->get_device("extspi");
+    spiDevp = std::move(hal.spi->get_device("extspi"));
+    if (!spiDevp)
+        return false;
+    spiDevp->get_semaphore()->take_blocking();
     spiDevp->set_speed(AP_HAL::Device::SPEED_LOW);
+    spiDevp->get_semaphore()->give();
+
+
 
 //    spiDevp->register_periodic_callback(100 * AP_USEC_PER_MSEC,
 //                                     FUNCTOR_BIND_MEMBER(&update, void));
@@ -68,11 +74,25 @@ void MB4_AKS16_Enc::update()
 //        spi_name = hal.spi->get_device_name(i);
 //        hal.console->printf("MB4::update(): SPI%d name: '%s'\n", i, spi_name);
 //    }
-    counter = 0xaa55;
-    outp = (uint8_t *)&counter;
-    spiDevp->transfer(outp, 2, buf, 2);
-    hal.console->printf("MB4:: sent %0X, %0X, received %0X, %0X\n", outp[0], outp[1], buf[0], buf[1]);
+//    counter = 0xaa55;
+//    outp = (uint8_t *)&counter;
+//    spiDevp->transfer(outp, 2, buf, 2);
+//    hal.console->printf("MB4:: sent %0X, %0X, received %0X, %0X\n", outp[0], outp[1], buf[0], buf[1]);
     counter++;
+
+    counter = 0xaa55aa55;
+    outp = (uint8_t *)&counter;
+
+    spiDevp->get_semaphore()->take_blocking();
+    spiDevp->transfer(outp, 4, buf, 4);
+    spiDevp->get_semaphore()->give();
+
+    hal.console->printf("MB4:: sent %0X, %0X, received %0X, %0X\n", outp[0], outp[1], buf[0], buf[1]);
+//    spiDevp->set_chip_select((counter&1)?1:0);
+
+
+
+    hal.console->printf("MB4:: setting CS to %d", (counter&1)?1:0);
 }
 
 
