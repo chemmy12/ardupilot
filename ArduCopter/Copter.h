@@ -70,6 +70,8 @@
 #include <AP_ADSB/AP_ADSB.h>                // ADS-B RF based collision avoidance module library
 #include <AP_Proximity/AP_Proximity.h>      // ArduPilot proximity sensor library
 
+#include <AP_MB4_AKS16/AP_MB4_AKS16_Enc.h>  // absolute position encoders
+
 // Configuration
 #include "defines.h"
 #include "config.h"
@@ -1018,6 +1020,8 @@ private:
     // mode.cpp
     Mode *mode_from_mode_num(const Mode::Number mode);
     void exit_mode(Mode *&old_flightmode, Mode *&new_flightmode);
+
+    MB4_AKS16_Enc   mb4_encoder1;       // chemmy: Encoder class instance
 
 public:
     void failsafe_check();      // failsafe.cpp

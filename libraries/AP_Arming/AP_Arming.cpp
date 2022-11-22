@@ -650,7 +650,7 @@ bool AP_Arming::hardware_safety_check(bool report)
 
       // check if safety switch has been pushed
       if (hal.util->safety_switch_state() == AP_HAL::Util::SAFETY_DISARMED) {
-          check_failed(ARMING_CHECK_SWITCH, report, "Hardware safety switch");
+          check_failed(ARMING_CHECK_SWITCH, report, "chemmy: Hardware safety switch");
           return false;
       }
     }

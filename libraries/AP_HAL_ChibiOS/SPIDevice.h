@@ -163,6 +163,16 @@ public:
 
     void set_register_rw_callback(const char* name, AP_HAL::Device::RegisterRWCb cb) override;
 
+    const char *get_device_name(uint8_t idx) override {
+        return device_table[idx].name;
+    }
+
+    uint8_t get_count() override {
+        int i;
+        for (i = 0;  i < 8 /* ARRAY_SIZE(device_table) */; i++) ;
+        return i;
+    }
+
 private:
     static SPIDesc device_table[];
     SPIBus *buses;
