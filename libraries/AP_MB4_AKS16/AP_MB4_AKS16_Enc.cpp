@@ -4,11 +4,11 @@
 
 #include "AP_MB4_AKS16_Enc.h"
 
-AP_HAL::OwnPtr<AP_HAL::SPIDevice> mb4_spi_dev = nullptr;
+//AP_HAL::OwnPtr<AP_HAL::SPIDevice> mb4_spi_dev = nullptr;
 
 
 MB4_AKS16_Enc::MB4_AKS16_Enc():
-    counter(1300), spiDevp(nullptr), notYetInit(true)
+    counter(1300),  notYetInit(true)
 {
 
 //    hal.console->printf("\n\n\nHere we are at MB4_AKS16_Enc constructor\n\n\n");
@@ -32,13 +32,11 @@ bool MB4_AKS16_Enc::init()
 
 //    spiDevp = probe(*this, std::move(hal.spi->get_device("extspi")));
     // Init MB4....
-    spiDevp = std::move(hal.spi->get_device("extspi"));
-    if (!spiDevp)
-        return false;
-    spiDevp->get_semaphore()->take_blocking();
-    spiDevp->set_speed(AP_HAL::Device::SPEED_LOW);
-    spiDevp->get_semaphore()->give();
-
+//    spiDevp->get_semaphore()->take_blocking();
+//    spiDevp->set_speed(AP_HAL::Device::SPEED_LOW);
+//    spiDevp->get_semaphore()->give();
+//      if (!aks16.init_AKS16())
+//          return false;
 
 
 //    spiDevp->register_periodic_callback(100 * AP_USEC_PER_MSEC,
@@ -51,8 +49,6 @@ bool MB4_AKS16_Enc::init()
 //    if(!spiDevp)
 //        return false;
 
-    mb4_spi_dev = spiDevp;
-
 
     notYetInit = false;
 
@@ -62,12 +58,14 @@ bool MB4_AKS16_Enc::init()
 void MB4_AKS16_Enc::update()
 {
 //    const char *spi_name;
-    uint8_t buf[16];
-    uint8_t *outp;
+//    uint8_t buf[16];
+//    uint8_t *outp;
+
+return;
 
     if (notYetInit)
         init();
-    hal.console->printf("We are at MB4_AKS16_Enc update(). device=%lx\n", (long int)&spiDevp);
+//    hal.console->printf("We are at MB4_AKS16_Enc update(). device=%lx\n", (long int)&spiDevp);
 
 //    uint8_t spicount = hal.spi->get_count();
 //    for (int i = 0; i < spicount; i++) {
@@ -79,33 +77,25 @@ void MB4_AKS16_Enc::update()
 //    spiDevp->transfer(outp, 2, buf, 2);
 //    hal.console->printf("MB4:: sent %0X, %0X, received %0X, %0X\n", outp[0], outp[1], buf[0], buf[1]);
     counter++;
+    hal.console->printf("MB4:: counter=%ld\n", counter);
+//    counter = 0xaa55bb66;
+//    outp = (uint8_t *)&counter;
 
-    counter = 0xaa55aa55;
-    outp = (uint8_t *)&counter;
+//    spiDevp->get_semaphore()->take_blocking();
+//    spiDevp->transfer(outp, 2, buf, 2);
+//    spiDevp->get_semaphore()->give();
 
-    spiDevp->get_semaphore()->take_blocking();
-    spiDevp->transfer(outp, 4, buf, 4);
-    spiDevp->get_semaphore()->give();
 
-    hal.console->printf("MB4:: sent %0X, %0X, received %0X, %0X\n", outp[0], outp[1], buf[0], buf[1]);
+
+//    hal.console->printf("MB4:: sent %02X, %02X, %02X, %02X, received %02X, %02X, %02X, %02X\n",
+//                        outp[0], outp[1], outp[2], outp[3], buf[0], buf[1], buf[2], buf[3]);
 //    spiDevp->set_chip_select((counter&1)?1:0);
 
-
-
-    hal.console->printf("MB4:: setting CS to %d", (counter&1)?1:0);
+//    aks16.update_encoders();
 }
 
 
-void mb4_spi_transfer(uint8_t *data_tx, uint8_t *data_rx, uint16_t datasize)
-{
-    mb4_spi_dev->transfer(data_tx, datasize, data_rx, datasize);
-//    digitalWrite(NCS_PIN, LOW);
-//
-//    for (uint8_t i = 0; i < datasize; i++)
-//        data_rx[i] = SPI.transfer(data_tx[i]);
-//
-//    digitalWrite(NCS_PIN, HIGH);
-}
+
 
 //MB4_Backend::MB4_Backend(inst, AP_HAL::OwnPtr<AP_HAL::Device> dev)
 //{
