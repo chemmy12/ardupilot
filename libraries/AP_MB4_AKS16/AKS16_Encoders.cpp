@@ -14,7 +14,6 @@ bool AKS16::init_AKS16() {
   mb4.mb4_write_param(&mb4.MB4_CFGIF, 0x00); //(TTL)
   mb4.mb4_write_param(&mb4.MB4_SLAVELOC5, 0x01);
 
-
   //Single-Cycle Data: Data channel configuration
   mb4.mb4_write_param(&mb4.MB4_ENSCD1, 0x01);
   mb4.mb4_write_param(&mb4.MB4_SCDLEN1, 0x19);

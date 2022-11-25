@@ -28,6 +28,10 @@ bool MB4::mb4_init()
         return false;
     }
     hal.console->printf("mb4_init(): spiDevp is not null\n");
+    spiDevp->get_semaphore()->take_blocking();
+    spiDevp->set_speed(AP_HAL::Device::SPEED_LOW);
+    spiDevp->get_semaphore()->give();
+
     return true;
 }
 
@@ -307,7 +311,9 @@ void MB4::mb4_spi_transfer(uint8_t *data_tx, uint8_t *data_rx, uint16_t datasize
 {
     if (spiDevp) {
         hal.console->printf("MB4::mb4_spi_transfer(): size=%d\n", datasize);
+        spiDevp->get_semaphore()->take_blocking();
         spiDevp->transfer(data_tx, datasize, data_rx, datasize);
+        spiDevp->get_semaphore()->give();
     }
     else
         hal.console->printf("MB4::mb4_spi_transfer(): spiDevp is null\n");
