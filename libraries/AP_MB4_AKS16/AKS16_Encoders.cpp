@@ -27,12 +27,9 @@ bool AKS16::init_AKS16() {
   mb4.mb4_write_param(&mb4.MB4_SCRCLEN5, 0x06);
   mb4.mb4_write_param(&mb4.MB4_SCRCSTART5,0x00);
 
-
   //Frame Control: Master configuration
   mb4.mb4_write_param(&mb4.MB4_FREQS,0x04);
   mb4.mb4_write_param(&mb4.MB4_FREQAGS,0x63);
-
-
 
   //Reset SVALID flags
   mb4.mb4_write_param(&mb4.MB4_SVALID1,0x00);
@@ -40,12 +37,19 @@ bool AKS16::init_AKS16() {
   //Start AGS
   mb4.mb4_write_param(&mb4.MB4_AGS,0x01);
 
-  return true;
+  // Starting the backend process
+    AP_HAL::OwnPtr<AP_HAL::SPIDevice> *devpp = mb4.get_devicepp();
+    (*devpp)->register_periodic_callback(20000, FUNCTOR_BIND_MEMBER(&AKS16::update_encoders, void));
+
+    return true;
 }
 
-bool AKS16::update_encoders() {
+
+void AKS16::update_encoders() {     // Backend process
 
     hal.console->printf("AKS16::update_encoders();\n");
+
+//    mb4.take_blocking();
 
     mb4.mb4_write_param(&mb4.MB4_SVALID1, 0x00);
     mb4.mb4_write_param(&mb4.MB4_SVALID5, 0x00);
@@ -103,7 +107,11 @@ bool AKS16::update_encoders() {
         mb4.mb4_write_param(&mb4.MB4_HOLDBANK, 0x00);
     } else {
     }
+
+//    mb4.give_blocking();
+
     //If Status not ok, check data channel configuration
-    return true;
+    return ;
+
 //}
 }

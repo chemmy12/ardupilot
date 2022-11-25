@@ -24,7 +24,7 @@ class AKS16 {
 public:
     AKS16() {};
     bool init_AKS16();
-    bool update_encoders();
+    void update_encoders();
 
 private:
     // const int dataReadyPin = 6;

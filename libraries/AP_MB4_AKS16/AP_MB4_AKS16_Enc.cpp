@@ -98,7 +98,7 @@ void MB4_AKS16_Enc::update()
 //                        outp[0], outp[1], outp[2], outp[3], buf[0], buf[1], buf[2], buf[3]);
 //    spiDevp->set_chip_select((counter&1)?1:0);
 
-    aks16.update_encoders();
+//    aks16.update_encoders();
 }
 
 

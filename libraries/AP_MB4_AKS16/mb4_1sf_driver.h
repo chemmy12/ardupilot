@@ -324,6 +324,9 @@ public:
     uint64_t mb4_read_param(const struct mb4_param *param);
     void mb4_write_param(const struct mb4_param *param, uint64_t param_val);
     void mb4_spi_transfer(uint8_t *data_tx, uint8_t *data_rx, uint16_t datasize);
+    void take_blocking();
+    void give_blocking();
+    AP_HAL::OwnPtr<AP_HAL::SPIDevice> *get_devicepp() { return &spiDevp; }
 };
 ///* Sensor and Actuator Data */
 //extern const struct mb4_param MB4_SCDATA1;
