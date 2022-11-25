@@ -30,6 +30,10 @@ MB4_AKS16_Enc::MB4_AKS16_Enc():
 bool MB4_AKS16_Enc::init()
 {
 
+    if (!aks16.init_AKS16())
+        return false;
+    notYetInit = false;
+
 //    spiDevp = probe(*this, std::move(hal.spi->get_device("extspi")));
     // Init MB4....
 //    spiDevp->get_semaphore()->take_blocking();
@@ -50,7 +54,7 @@ bool MB4_AKS16_Enc::init()
 //        return false;
 
 
-    notYetInit = false;
+
 
     return true;
 }
@@ -61,10 +65,13 @@ void MB4_AKS16_Enc::update()
 //    uint8_t buf[16];
 //    uint8_t *outp;
 
-return;
-
     if (notYetInit)
-        init();
+        if (!init()) {
+            hal.console->printf("MB4_AKS16_Enc::update(): could not init()\n");
+            return;
+        }
+
+
 //    hal.console->printf("We are at MB4_AKS16_Enc update(). device=%lx\n", (long int)&spiDevp);
 
 //    uint8_t spicount = hal.spi->get_count();
@@ -91,7 +98,7 @@ return;
 //                        outp[0], outp[1], outp[2], outp[3], buf[0], buf[1], buf[2], buf[3]);
 //    spiDevp->set_chip_select((counter&1)?1:0);
 
-//    aks16.update_encoders();
+    aks16.update_encoders();
 }
 
 

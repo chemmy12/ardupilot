@@ -39,8 +39,8 @@ private:
     uint32_t SCDATA1;
     uint32_t SCDATA5;
     uint32_t OUT1;
-    uint32_t OUT5;
-//    MB4 mb4;
+    uint32_t OUT2;
+    MB4 mb4;
 };
 
 
@@ -60,7 +60,7 @@ private:
     uint32_t counter;
 //    AP_HAL::OwnPtr<AP_HAL::SPIDevice> spiDevp;
     bool  notYetInit;
-//    AKS16 aks16;
+    AKS16 aks16;
 };
 
 

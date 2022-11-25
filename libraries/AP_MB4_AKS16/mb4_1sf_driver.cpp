@@ -22,9 +22,12 @@
 bool MB4::mb4_init()
 {
     spiDevp = std::move(hal.spi->get_device("extspi"));
-    if (!spiDevp)
-        return false;
 
+    if (!spiDevp) {
+        hal.console->printf("mb4_init(): spiDevp is null\n");
+        return false;
+    }
+    hal.console->printf("mb4_init(): spiDevp is not null\n");
     return true;
 }
 
@@ -302,7 +305,12 @@ uint8_t MB4::get_start_bit_number(uint8_t bit_pos, uint8_t bit_len) {
 
 void MB4::mb4_spi_transfer(uint8_t *data_tx, uint8_t *data_rx, uint16_t datasize)
 {
-    spiDevp->transfer(data_tx, datasize, data_rx, datasize);
+    if (spiDevp) {
+        hal.console->printf("MB4::mb4_spi_transfer(): size=%d\n", datasize);
+        spiDevp->transfer(data_tx, datasize, data_rx, datasize);
+    }
+    else
+        hal.console->printf("MB4::mb4_spi_transfer(): spiDevp is null\n");
 //    digitalWrite(NCS_PIN, LOW);
 //
 //    for (uint8_t i = 0; i < datasize; i++)

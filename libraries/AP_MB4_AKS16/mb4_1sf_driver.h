@@ -319,7 +319,7 @@ private:
     void mb4_read_registers(uint8_t start_addr, uint8_t *data_rx, uint8_t datasize);
 
 public:
-    MB4() {};
+    MB4(): spiDevp(nullptr) {};
     bool mb4_init();
     uint64_t mb4_read_param(const struct mb4_param *param);
     void mb4_write_param(const struct mb4_param *param, uint64_t param_val);
