@@ -57,18 +57,6 @@ void AKS16::createBackProcess()
 
 
 void AKS16::update_encoders() {     // Backend process
-    uint32_t currentTime, displayTime;
-    uint8_t StatusInformationF0;
-    uint8_t StatusInformationF1;
-    uint8_t StatusInformationF5;
-    uint8_t StatusInformationF0_1;
-    uint8_t StatusInformationF0_2;
-    uint8_t StatusInformationF0_3;
-    uint32_t SCDATA1;
-    uint32_t SCDATA5;
-    uint32_t OUT1;
-    uint32_t OUT2;
-
 //    hal.console->printf("AKS16::update_encoders();\n");
 
     mb4.mb4_write_param(&mb4.MB4_SVALID1, 0x00);
@@ -101,8 +89,7 @@ void AKS16::update_encoders() {     // Backend process
     StatusInformationF0_1 = mb4.mb4_read_param(&mb4.MB4_nSCDERR);
     StatusInformationF0_2 = mb4.mb4_read_param(&mb4.MB4_nDELAYERR);
     StatusInformationF0_3 = mb4.mb4_read_param(&mb4.MB4_nAGSERR);
-    hal.console->printf("StatusInformationF0: %d, F1: %d, F0_1: %d F0_2: %d, F0_3: %d\n",
-         StatusInformationF0,
+    hal.console->printf("StatusInformationF0: F1: %d, F0_1: %d F0_2: %d, F0_3: %d\n",
          StatusInformationF1,
          StatusInformationF0_1,
          StatusInformationF0_2,
@@ -127,6 +114,8 @@ void AKS16::update_encoders() {     // Backend process
         mb4.mb4_write_param(&mb4.MB4_HOLDBANK, 0x00);
     } else {
     }
+
+    Write_MB4();
 
     //If Status not ok, check data channel configuration
     return ;

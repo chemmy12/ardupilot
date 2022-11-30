@@ -700,6 +700,18 @@ struct PACKED log_VER {
     uint16_t _APJ_BOARD_ID;
 };
 
+struct PACKED log_AKS {
+    LOG_PACKET_HEADER;
+    uint64_t time_us;
+    float out1;
+    float out2;
+    uint8_t StatusInformationF1;
+    uint8_t StatusInformationF5;
+    uint8_t StatusInformationF0_1;
+    uint8_t StatusInformationF0_2;
+    uint8_t StatusInformationF0_3;
+};
+
 
 // FMT messages define all message formats other than FMT
 // UNIT messages define units which can be referenced by FMTU messages
@@ -1331,7 +1343,10 @@ LOG_STRUCTURE_FROM_AIS \
     { LOG_VER_MSG, sizeof(log_VER), \
       "VER",   "QBHBBBBIZH", "TimeUS,BT,BST,Maj,Min,Pat,FWT,GH,FWS,APJ", "s---------", "F---------", false }, \
     { LOG_MOTBATT_MSG, sizeof(log_MotBatt), \
-      "MOTB", "QffffB",  "TimeUS,LiftMax,BatVolt,ThLimit,ThrAvMx,FailFlags", "s-----", "F-----" , true }
+      "MOTB", "QffffB",  "TimeUS,LiftMax,BatVolt,ThLimit,ThrAvMx,FailFlags", "s-----", "F-----" , true }, \
+    { LOG_AKS16_MSG, sizeof(log_AKS), \
+      "AKS", "Qffbbbbb",  "TimeUS,out1,out2,F1,F5,F0_1,F0_2,F0_3", "s-------", "F-------" , true }
+
 
 // message types 0 to 63 reserved for vehicle specific use
 
@@ -1417,6 +1432,7 @@ enum LogMessages : uint8_t {
     LOG_RCOUT2_MSG,
     LOG_RCOUT3_MSG,
     LOG_IDS_FROM_FENCE,
+    LOG_AKS16_MSG,
 
     _LOG_LAST_MSG_
 };
