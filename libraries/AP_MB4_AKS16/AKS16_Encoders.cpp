@@ -2,17 +2,24 @@
 #include "AP_MB4_AKS16_Enc.h"
 #include "mb4_1sf_driver.h"
 
+bool AKS16::test() {
+    uint8_t res = mb4.mb4_read_param(&mb4.MB4_VERSION);
+    hal.console->printf("MB4 version=%d\n", res);
+    hal.console->printf("MB4 revision #%x\n", (unsigned int)mb4.mb4_read_param(&mb4.MB4_REVISION));
+    return (res == 0x84) ? true : false;
+}
 
 bool AKS16::init_AKS16() {
 
   if (!mb4.mb4_init())
       return false;
 
+
   //BiSS/SSI Interface
   mb4.mb4_write_param(&mb4.MB4_CFGCH1, 0x01); //(BiSS C)
-  mb4.mb4_write_param(&mb4.MB4_CFGCH2, 0x01); //(Not in use)
-  mb4.mb4_write_param(&mb4.MB4_CFGIF, 0x00); //(TTL)
-  mb4.mb4_write_param(&mb4.MB4_SLAVELOC5, 0x01);
+  mb4.mb4_write_param(&mb4.MB4_CFGCH2, 0x01); //(Not in use)    ????
+  mb4.mb4_write_param(&mb4.MB4_CFGIF, 0x00); //(TTL=0, CMOS=1)
+  mb4.mb4_write_param(&mb4.MB4_SLAVELOC5, 0x01); // (2 channels)
 
   //Single-Cycle Data: Data channel configuration
   mb4.mb4_write_param(&mb4.MB4_ENSCD1, 0x01);
@@ -37,19 +44,32 @@ bool AKS16::init_AKS16() {
   //Start AGS
   mb4.mb4_write_param(&mb4.MB4_AGS,0x01);
 
-  // Starting the backend process
-    AP_HAL::OwnPtr<AP_HAL::SPIDevice> *devpp = mb4.get_devicepp();
-    (*devpp)->register_periodic_callback(20000, FUNCTOR_BIND_MEMBER(&AKS16::update_encoders, void));
-
     return true;
+}
+
+void AKS16::createBackProcess()
+{
+    // Starting the backend process
+    AP_HAL::OwnPtr<AP_HAL::SPIDevice> *devpp = mb4.get_devicepp();
+    (*devpp)->register_periodic_callback(4000, FUNCTOR_BIND_MEMBER(&AKS16::update_encoders, void));
+
 }
 
 
 void AKS16::update_encoders() {     // Backend process
+    uint32_t currentTime, displayTime;
+    uint8_t StatusInformationF0;
+    uint8_t StatusInformationF1;
+    uint8_t StatusInformationF5;
+    uint8_t StatusInformationF0_1;
+    uint8_t StatusInformationF0_2;
+    uint8_t StatusInformationF0_3;
+    uint32_t SCDATA1;
+    uint32_t SCDATA5;
+    uint32_t OUT1;
+    uint32_t OUT2;
 
-    hal.console->printf("AKS16::update_encoders();\n");
-
-//    mb4.take_blocking();
+//    hal.console->printf("AKS16::update_encoders();\n");
 
     mb4.mb4_write_param(&mb4.MB4_SVALID1, 0x00);
     mb4.mb4_write_param(&mb4.MB4_SVALID5, 0x00);
@@ -75,7 +95,7 @@ void AKS16::update_encoders() {     // Backend process
     OUT1 = (uint32_t) SCDATA1;
     SCDATA5 = mb4.mb4_read_param(&mb4.MB4_SCDATA5); //SCDATA5
     OUT2 = (uint32_t) SCDATA5;
-    hal.console->printf("Data1: %04lx, %04lx\n", OUT1, OUT2);
+    hal.console->printf("Data1,5: %04ld, %04ld\n", OUT1, OUT2);
 
 
     StatusInformationF0_1 = mb4.mb4_read_param(&mb4.MB4_nSCDERR);
@@ -107,8 +127,6 @@ void AKS16::update_encoders() {     // Backend process
         mb4.mb4_write_param(&mb4.MB4_HOLDBANK, 0x00);
     } else {
     }
-
-//    mb4.give_blocking();
 
     //If Status not ok, check data channel configuration
     return ;

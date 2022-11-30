@@ -29,7 +29,7 @@ bool MB4::mb4_init()
     }
     hal.console->printf("mb4_init(): spiDevp is not null\n");
     spiDevp->get_semaphore()->take_blocking();
-    spiDevp->set_speed(AP_HAL::Device::SPEED_LOW);
+    spiDevp->set_speed(AP_HAL::Device::SPEED_HIGH);
     spiDevp->get_semaphore()->give();
 
     return true;
@@ -172,33 +172,33 @@ void MB4::mb4_write_registers_0(uint8_t *data_tx, uint8_t datasize) {
   */
 uint64_t MB4::mb4_read_param(const struct mb4_param *param) {
 	uint8_t datasize;
-//
-//	if (param->len <= 8) {
-//		datasize = 1;
-//	}
-//	else if (param->len <= 16) {
-//		datasize = 2;
-//	}
-//	else if (param->len <= 24) {
-//		datasize = 3;
-//	}
-//	else if (param->len <= 32) {
-//		datasize = 4;
-//	}
-//	else if (param->len <= 40) {
-//		datasize = 5;
-//	}
-//	else if (param->len <= 48) {
-//		datasize = 6;
-//	}
-//	else if (param->len <= 56) {
-//		datasize = 7;
-//	}
-//	else {
-//		datasize = 8;
-//	}
 
-    datasize = (param->len + 7) / 8;
+	if (param->len <= 8) {
+		datasize = 1;
+	}
+	else if (param->len <= 16) {
+		datasize = 2;
+	}
+	else if (param->len <= 24) {
+		datasize = 3;
+	}
+	else if (param->len <= 32) {
+		datasize = 4;
+	}
+	else if (param->len <= 40) {
+		datasize = 5;
+	}
+	else if (param->len <= 48) {
+		datasize = 6;
+	}
+	else if (param->len <= 56) {
+		datasize = 7;
+	}
+	else {
+		datasize = 8;
+	}
+
+//    datasize = (param->len + 7) / 8;
 
 	uint8_t start_bit = get_start_bit_number(param->pos, param->len);
 	uint8_t start_addr = param->addr - datasize + 1;
@@ -216,11 +216,11 @@ uint64_t MB4::mb4_read_param(const struct mb4_param *param) {
 
 	uint64_t param_mask = 0;
 
-//	for (uint16_t i = 0; i < param->len; i++) {
-//		param_mask |= (uint64_t) 1 << i;
-//	}
+	for (uint16_t i = 0; i < param->len; i++) {
+		param_mask |= (uint64_t) 1 << i;
+	}
 
-    param_mask = (1ULL << (param->len + 1)) - 1;
+//    param_mask = (1ULL << (param->len + 1)) - 1;
 
 	param_val &= param_mask;
 
@@ -325,7 +325,9 @@ void MB4::mb4_spi_transfer(uint8_t *data_tx, uint8_t *data_rx, uint16_t datasize
 {
 //    hal.console->printf("MB4::mb4_spi_transfer(): size=%d\n", datasize);
     spiDevp->get_semaphore()->take_blocking();
-    spiDevp->transfer(data_tx, datasize, data_rx, datasize);
+//    spiDevp->set_chip_select(1);
+    spiDevp->transfer_fullduplex(data_tx, data_rx, datasize);
+    spiDevp->set_chip_select(0);
     spiDevp->get_semaphore()->give();
 
 }
