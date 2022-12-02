@@ -27,7 +27,7 @@ bool MB4::mb4_init()
         hal.console->printf("mb4_init(): spiDevp is null\n");
         return false;
     }
-    hal.console->printf("mb4_init(): spiDevp is not null\n");
+    hal.console->printf("mb4_init(): spiDevp initialized\n");
     spiDevp->get_semaphore()->take_blocking();
     spiDevp->set_speed(AP_HAL::Device::SPEED_HIGH);
     spiDevp->get_semaphore()->give();

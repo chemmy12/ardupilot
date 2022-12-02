@@ -703,8 +703,10 @@ struct PACKED log_VER {
 struct PACKED log_AKS {
     LOG_PACKET_HEADER;
     uint64_t time_us;
-    float out1;
-    float out2;
+    uint32_t enc1;
+    uint32_t enc2;
+    float encDeg1;
+    float encDeg2;
     uint8_t StatusInformationF1;
     uint8_t StatusInformationF5;
     uint8_t StatusInformationF0_1;
@@ -1345,7 +1347,7 @@ LOG_STRUCTURE_FROM_AIS \
     { LOG_MOTBATT_MSG, sizeof(log_MotBatt), \
       "MOTB", "QffffB",  "TimeUS,LiftMax,BatVolt,ThLimit,ThrAvMx,FailFlags", "s-----", "F-----" , true }, \
     { LOG_AKS16_MSG, sizeof(log_AKS), \
-      "AKS", "Qffbbbbb",  "TimeUS,out1,out2,F1,F5,F0_1,F0_2,F0_3", "s-------", "F-------" , true }
+      "AKS", "Qiiffbbbbb",  "TimeUS,enc1,enc2,encDeg1,encDeg2,F1,F5,F0_1,F0_2,F0_3", "s--dd-----", "F---------" , true }
 
 
 // message types 0 to 63 reserved for vehicle specific use
