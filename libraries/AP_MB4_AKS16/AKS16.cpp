@@ -128,16 +128,22 @@ bool AKS16::test() {
         return false;
     }
 
-    if ((res = mb4.mb4_read_param(&mb4.MB4_CFGCH1)) != 1) {
-        hal.console->printf("AKS16: MB4_CFGCH1 bad = #%x\n", (unsigned int)res);
-        return false;
-    }
+//    if ((res = mb4.mb4_read_param(&mb4.MB4_CFGCH1)) != 1) {
+//        hal.console->printf("AKS16: MB4_CFGCH1 bad = #%x\n", (unsigned int)res);
+//        return false;
+//    }
+//
+//    if ((res = mb4.mb4_read_param(&mb4.MB4_SLAVELOC5)) != 1) {
+//        hal.console->printf("AKS16: MB4_SLAVELOC5 bad = #%x\n", (unsigned int)res);
+//        return false;
+//    }
 
-    if ((res = mb4.mb4_read_param(&mb4.MB4_SLAVELOC5)) != 1) {
-        hal.console->printf("AKS16: MB4_SLAVELOC5 bad = #%x\n", (unsigned int)res);
-        return false;
+//    StatusInformationF1 = mb4.mb4_read_param(&mb4.MB4_SVALID1);
+//    StatusInformationF5 = mb4.mb4_read_param(&mb4.MB4_SVALID5);
+//    if ((StatusInformationF1 & StatusInformationF5 & 0x01) != 0x01) {
+//        hal.console->printf("AKS16: MB4_SLAVELOC5 bad = #%x\n", (unsigned int)res);
+//        return false;
     }
-
     return true;
 }
 
@@ -186,7 +192,7 @@ void AKS16::createBackProcess()
 {
     // Starting the backend process
     AP_HAL::OwnPtr<AP_HAL::SPIDevice> *devpp = mb4.get_devicepp();
-    (*devpp)->register_periodic_callback(4000, FUNCTOR_BIND_MEMBER(&AKS16::update_encoders, void));
+    (*devpp)->register_periodic_callback(100000, FUNCTOR_BIND_MEMBER(&AKS16::update_encoders, void));
 
 }
 
@@ -212,19 +218,20 @@ bool AKS16::checkconv_enc_vals(float &e1, float &e2)
 void AKS16::update_encoders() {     // Backend process
 //    hal.console->printf("AKS16::update_encoders();\n");
 
-//    mb4.mb4_write_param(&mb4.MB4_SVALID1, 0x00);
-//    mb4.mb4_write_param(&mb4.MB4_SVALID5, 0x00);
-//    //Start AGS
-//    mb4.mb4_write_param(&mb4.MB4_AGS, 0x01);;
-//
-//    //Read Status Information register 0xF0, wait for end of transmission EOT=1
-//#ifdef WAIT_LOOP
-//    do {
-//        //hal.console->printf("3\n");
-//        StatusInformationF0 = mb4.mb4_read_param(&mb4.MB4_EOT);
-//    } while ((StatusInformationF0 & 0x01) == 0);
-//#endif
-//    //mb4.mb4_write_param(&mb4.MB4_HOLDBANK,0x01);
+    mb4.mb4_write_param(&mb4.MB4_SVALID1, 0x00);
+    mb4.mb4_write_param(&mb4.MB4_SVALID5, 0x00);
+    //Start AGS
+    mb4.mb4_write_param(&mb4.MB4_AGS, 0x01);;
+
+    //Read Status Information register 0xF0, wait for end of transmission EOT=1
+#ifdef WAIT_LOOP
+    int StatusInformationF0;
+    do {
+        //hal.console->printf("3\n");
+        StatusInformationF0 = mb4.mb4_read_param(&mb4.MB4_EOT);
+    } while ((StatusInformationF0 & 0x01) == 0);
+#endif
+    mb4.mb4_write_param(&mb4.MB4_HOLDBANK,0x01);
 
     //Read and reset SVALID flags in Status Information register 0xF1
     StatusInformationF1 = mb4.mb4_read_param(&mb4.MB4_SVALID1);
@@ -233,20 +240,21 @@ void AKS16::update_encoders() {     // Backend process
     mb4.mb4_write_param(&mb4.MB4_SVALID5, 0x00);
 
 //    encData1 = mb4.mb4_read_param(&mb4.MB4_SCDATA1); //encData1
-//    encDeg1 = (uint32_t) encData1;
-//    SCDATA5 = mb4.mb4_read_param(&mb4.MB4_SCDATA5); //SCDATA5
-//    encDeg2 = (uint32_t) SCDATA5;
-//    hal.console->printf("Data1,5: %04ld, %04ld\n", encDeg1, encDeg2);
+////    encDeg1 = (uint32_t) encData1;
+//    encDeg2 = mb4.mb4_read_param(&mb4.MB4_SCDATA5); //SCDATA5
+////    encDeg2 = (uint32_t) encDeg2;
+//    hal.console->printf("Data1,5: %04ld, %04ld\n", encData1, encData2);
 
 
     StatusInformationF0_1 = mb4.mb4_read_param(&mb4.MB4_nSCDERR);
     StatusInformationF0_2 = mb4.mb4_read_param(&mb4.MB4_nDELAYERR);
     StatusInformationF0_3 = mb4.mb4_read_param(&mb4.MB4_nAGSERR);
-//    hal.console->printf("StatusInformationF0: F1: %d, F0_1: %d F0_2: %d, F0_3: %d\n",
-//         StatusInformationF1,
-//         StatusInformationF0_1,
-//         StatusInformationF0_2,
-//         StatusInformationF0_3);
+    hal.console->printf("StatusInformationF1: F5: %d, %d, F0_1: %d F0_2: %d, F0_3: %d\n",
+         StatusInformationF1,
+         StatusInformationF5,
+         StatusInformationF0_1,
+         StatusInformationF0_2,
+         StatusInformationF0_3);
 
     if ((StatusInformationF0_1 & StatusInformationF0_2 & StatusInformationF0_3) == 0x01) {
 //        hal.console->printf("5\n");
@@ -266,7 +274,7 @@ void AKS16::update_encoders() {     // Backend process
             hal.console->printf("Reading: %ld, %ld\n", encData1 >> 6, encData2 >> 6);
         }
 
-//        mb4.mb4_write_param(&mb4.MB4_HOLDBANK, 0x00);
+        mb4.mb4_write_param(&mb4.MB4_HOLDBANK, 0x00);
     } else {
     }
     checkconv_enc_vals(encDeg1, encDeg2);
