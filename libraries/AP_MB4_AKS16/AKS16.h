@@ -25,9 +25,12 @@ public:
     bool init_AKS16();
     void createBackProcess();
     void update_encoders(); // backend running process
+    void update_encoders2(); // backend running process 2nd version
+    void recover();
     void Write_MB4();       // write to logger
     bool test();            // Test that AKS16 + MB4 are valid
     static const struct AP_Param::GroupInfo var_info[];
+    void printBytes(uint64_t);
 
 private:
     bool checkconv_enc_vals(float &e1, float &e2);
@@ -54,6 +57,8 @@ private:
     AP_Float    _en2_degMax;
     AP_Int32    _en2_encMax;
     AP_Int8     _enable;
+
+    bool        sema;
 
 };
 
