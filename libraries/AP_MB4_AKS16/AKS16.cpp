@@ -228,7 +228,7 @@ void AKS16::createBackProcess()
 {
     // Starting the backend process
     AP_HAL::OwnPtr<AP_HAL::SPIDevice> *devpp = mb4.get_devicepp();
-    (*devpp)->register_periodic_callback(2000, FUNCTOR_BIND_MEMBER(&AKS16::update_encoders2, void));
+    (*devpp)->register_periodic_callback(1250, FUNCTOR_BIND_MEMBER(&AKS16::update_encoders2, void));
 
 }
 
@@ -245,8 +245,10 @@ bool AKS16::checkconv_enc_vals(float &e1, float &e2)
         e2 = ERROR_VAL;
     else
         e2 = _en2_degMin + (double)(encData2 - _en2_encMin) * (_en2_degMax - _en2_degMin) / (_en2_encMax - _en2_encMin);
-    if (e1 > (ERROR_VAL-1) && e2 > (ERROR_VAL-1))
+    if (e1 > (ERROR_VAL-1) || e2 > (ERROR_VAL-1)) {
+        hal.console->printf("c");
         return false;
+    }
     return true;
 }
 
@@ -278,17 +280,20 @@ void AKS16::update_encoders2() {     // Backend process
     sema = SEMA_NOT_AVAIL;
 
     int StatusInformationF0;
-    bool needToWait = false;
     uint64_t startTime = AP_HAL::micros64();
     do {
-        if (needToWait)
-            hal.scheduler->delay_microseconds(10);
         StatusInformationF0 = mb4.mb4_read_param(&mb4.MB4_EOT);
-        needToWait = true;
-    } while (((StatusInformationF0 & 0x01) == 0) && ((AP_HAL::micros64() - startTime) < MAX_LOOP_USEC));
-    hal.console->printf("%lld,", AP_HAL::micros64() - startTime);
-
-//    mb4.mb4_write_param(&mb4.MB4_HOLDBANK,0x01);
+        if ((StatusInformationF0 & 0x01) != 0)
+            break;
+        if ((AP_HAL::micros64() - startTime) < MAX_LOOP_USEC) {
+            recover();
+            mb4.mb4_write_param(&mb4.MB4_HOLDBANK,0x00);
+            sema = SEMA_AVAIL;
+            return ;
+        }
+    } while (true);
+//    hal.console->printf("%lld,", AP_HAL::micros64() - startTime);
+    mb4.mb4_write_param(&mb4.MB4_HOLDBANK,0x01);
 
     //Read and reset SVALID flags in Status Information register 0xF1
     StatusInformationF1 = mb4.mb4_read_param(&mb4.MB4_SVALID1);
@@ -309,7 +314,7 @@ void AKS16::update_encoders2() {     // Backend process
         else {  //If Status ok and SVALID flag is set, read single-cycle data
             encData1 = mb4.mb4_read_param(&mb4.MB4_SCDATA1)>>6; //encData1
             encData2 = mb4.mb4_read_param(&mb4.MB4_SCDATA5)>>6; //encData2
-            hal.console->printf(".");
+//            hal.console->printf(".");
 //            hal.console->printf("Reading 1,2: %X, %X\n", (int)encData1 , (int)encData2);
         }
 
@@ -317,9 +322,10 @@ void AKS16::update_encoders2() {     // Backend process
         hal.console->printf("e");
         recover();
     }
+    mb4.mb4_write_param(&mb4.MB4_HOLDBANK,0x00);
 
     checkconv_enc_vals(encDeg1, encDeg2);
-    Write_MB4();
+    Write_MB4();    // Write to logger
 
     //If Status not ok, check data channel configuration
     sema = SEMA_AVAIL;
