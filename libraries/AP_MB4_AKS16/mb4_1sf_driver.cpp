@@ -173,32 +173,7 @@ void MB4::mb4_write_registers_0(uint8_t *data_tx, uint8_t datasize) {
 uint64_t MB4::mb4_read_param(const struct mb4_param *param) {
 	uint8_t datasize;
 
-	if (param->len <= 8) {
-		datasize = 1;
-	}
-	else if (param->len <= 16) {
-		datasize = 2;
-	}
-	else if (param->len <= 24) {
-		datasize = 3;
-	}
-	else if (param->len <= 32) {
-		datasize = 4;
-	}
-	else if (param->len <= 40) {
-		datasize = 5;
-	}
-	else if (param->len <= 48) {
-		datasize = 6;
-	}
-	else if (param->len <= 56) {
-		datasize = 7;
-	}
-	else {
-		datasize = 8;
-	}
-
-//    datasize = (param->len + 7) / 8;
+    datasize = (param->len + 7) / 8;
 
 	uint8_t start_bit = get_start_bit_number(param->pos, param->len);
 	uint8_t start_addr = param->addr - datasize + 1;
@@ -216,11 +191,10 @@ uint64_t MB4::mb4_read_param(const struct mb4_param *param) {
 
 	uint64_t param_mask = 0;
 
-	for (uint16_t i = 0; i < param->len; i++) {
-		param_mask |= (uint64_t) 1 << i;
-	}
-
-//    param_mask = (1ULL << (param->len + 1)) - 1;
+//	for (uint16_t i = 0; i < param->len; i++) {
+//		param_mask |= (uint64_t) 1 << i;
+//	}
+    param_mask = (1ULL << (param->len + 1)) - 1;
 
 	param_val &= param_mask;
 
@@ -238,31 +212,6 @@ uint64_t MB4::mb4_read_param(const struct mb4_param *param) {
   */
 void MB4::mb4_write_param(const struct mb4_param *param, uint64_t param_val) {
 	uint8_t datasize;
-//
-//	if (param->len <= 8) {
-//		datasize = 1;
-//	}
-//	else if (param->len <= 16) {
-//		datasize = 2;
-//	}
-//	else if (param->len <= 24) {
-//		datasize = 3;
-//	}
-//	else if (param->len <= 32) {
-//		datasize = 4;
-//	}
-//	else if (param->len <= 40) {
-//		datasize = 5;
-//	}
-//	else if (param->len <= 48) {
-//		datasize = 6;
-//	}
-//	else if (param->len <= 56) {
-//		datasize = 7;
-//	}
-//	else {
-//		datasize = 8;
-//	}
 
     datasize = (param->len + 7) / 8;
 

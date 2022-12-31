@@ -19,13 +19,13 @@ extern const AP_HAL::HAL& hal;
 
 class AKS16 {
 public:
+    enum status_flags {SCDERR, DELAYERR, AGSERR, SVALID1, SVALID5, ENC1RANGE, ENC2RANGE, ENC1STEP, ENC2STEP, MB4_TIMEOUT};
     AKS16();
     bool init();
     void update();
     bool init_AKS16();
     void createBackProcess();
-    void update_encoders(); // backend running process
-    void update_encoders2(); // backend running process 2nd version
+    void update_encoders(); // backend running process 2nd version
     void recover();
     void Write_MB4();       // write to logger
     bool test();            // Test that AKS16 + MB4 are valid
@@ -47,6 +47,7 @@ private:
     float encDeg1;
     float encDeg2;
     MB4 mb4;
+    uint16_t encStatus;
 
     AP_Float    _en1_degMin;
     AP_Int32    _en1_encMin;
@@ -62,5 +63,6 @@ private:
 
 };
 
+#define SET_BIT(f)  (1 << f)
 
 #endif //ARDUPILOT2_MB4_AKS16_ENC_H
