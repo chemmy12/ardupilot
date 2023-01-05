@@ -141,7 +141,7 @@ bool AKS16::test() {
         return false;
     }
 
-    if ((res = mb4.mb4_read_param(&mb4.MB4_CFGCH1)) != 1) {
+    if (((res = mb4.mb4_read_param(&mb4.MB4_CFGCH1)) & 0x01) != 1) {
         hal.console->printf("AKS16: MB4_CFGCH1 bad = #%x\n", (unsigned int)res);
         sema = SEMA_AVAIL;
         return false;
@@ -234,23 +234,37 @@ void AKS16::createBackProcess()
 
 #define ERROR_VAL 999.999
 #define PERCENT_EXTENDER  5.0
+#define MAX_STEP 0.2
 
 bool AKS16::checkconv_enc_vals(float &e1, float &e2)
 {
+    static float enc1old, enc2old;
+
     encStatus &= ~(SET_BIT(ENC1RANGE) | SET_BIT(ENC2RANGE));
     if ((encData1 < _en1_encMin * (1.0 - PERCENT_EXTENDER/100.0)) || (encData1 > _en1_encMax * (1.0 + PERCENT_EXTENDER/100.0))) {
         e1 = ERROR_VAL;
         encStatus |= SET_BIT(ENC1RANGE);
     }
-    else
+    else {
         e1 = _en1_degMin + (double)(encData1 - _en1_encMin) * (_en1_degMax - _en1_degMin) / (_en1_encMax - _en1_encMin);
+        if (abs(e1 - enc1old) > MAX_STEP) {
+            encStatus |= SET_BIT(ENC1STEP);
+        }
+        enc1old = e1;
+    }
 
     if (encData2 < (_en2_encMin * (1.0 - PERCENT_EXTENDER/100.0)) || (encData2 > _en2_encMax * (1.0 + PERCENT_EXTENDER/100.0))) {
         e2 = ERROR_VAL;
         encStatus |= SET_BIT(ENC2RANGE);
     }
-    else
-        e2 = _en2_degMin + (double)(encData2 - _en2_encMin) * (_en2_degMax - _en2_degMin) / (_en2_encMax - _en2_encMin);
+    else {
+        e2 = _en2_degMin + (double) (encData2 - _en2_encMin) * (_en2_degMax - _en2_degMin) / (_en2_encMax - _en2_encMin);
+        if (abs(e2 - enc2old) > MAX_STEP) {
+            encStatus |= SET_BIT(ENC2STEP);
+        }
+        enc2old = e2;
+    }
+
     if (encStatus & (SET_BIT(ENC1RANGE) | SET_BIT(ENC2RANGE))) {
         hal.console->printf("c");
         return false;
@@ -287,13 +301,16 @@ void AKS16::update_encoders() {     // Backend process
 
     int StatusInformationF0;
     uint64_t startTime = AP_HAL::micros64();
-    encStatus = 0;
+
+    encStatus = 0;      // resetting encoder status
 
     do {
         StatusInformationF0 = mb4.mb4_read_param(&mb4.MB4_EOT);
         if ((StatusInformationF0 & 0x01) != 0)
             break;
-        if ((AP_HAL::micros64() - startTime) < MAX_LOOP_USEC) {
+        if ((AP_HAL::micros64() - startTime) > MAX_LOOP_USEC) {
+//            hal.console->printf("TO:%lld,", AP_HAL::micros64() - startTime);
+            hal.console->printf("TO");
             recover();
             mb4.mb4_write_param(&mb4.MB4_HOLDBANK,0x00);
             encStatus |= SET_BIT(MB4_TIMEOUT);
@@ -317,7 +334,7 @@ void AKS16::update_encoders() {     // Backend process
 
 //    encStatus &= ~(SET_BIT(SCDERR) | SET_BIT(DELAYERR) | SET_BIT(AGSERR) | SET_BIT(SVALID1) | SET_BIT(SVALID5));
 
-    if ((StatusInformationF0_1 & StatusInformationF0_2 & StatusInformationF0_3) == 0x01) {
+    if ((StatusInformationF0_1 & StatusInformationF0_2 & StatusInformationF0_3 & 0x01) == 0x01) {
         //If Status ok but SVALID flag is not set, restart AGS
         if ((StatusInformationF1 & StatusInformationF5 & 0x01) == 0) {
             hal.console->printf("r");
@@ -330,17 +347,17 @@ void AKS16::update_encoders() {     // Backend process
         else {  //If Status ok and SVALID flag is set, read single-cycle data
             encData1 = mb4.mb4_read_param(&mb4.MB4_SCDATA1)>>6; //encData1
             encData2 = mb4.mb4_read_param(&mb4.MB4_SCDATA5)>>6; //encData2
-//            hal.console->printf(".");
+            hal.console->printf(".");
 //            hal.console->printf("Reading 1,2: %X, %X\n", (int)encData1 , (int)encData2);
         }
 
     } else {
         if (!StatusInformationF0_1)
-            encStatus |= SCDERR;
+            encStatus |= SET_BIT(SCDERR);
         if (!StatusInformationF0_2)
-            encStatus |= DELAYERR;
+            encStatus |= SET_BIT(DELAYERR);
         if (!StatusInformationF0_3)
-            encStatus |= AGSERR;
+            encStatus |= SET_BIT(AGSERR);
 
         hal.console->printf("e");
         recover();
@@ -349,7 +366,7 @@ void AKS16::update_encoders() {     // Backend process
 
     checkconv_enc_vals(encDeg1, encDeg2);
     Write_MB4();    // Write to logger
-//    hal.console->printf("Logging\n");
+//    hal.console->printf("Logging status=%d\n", encStatus);
 
     //If Status not ok, check data channel configuration
     sema = SEMA_AVAIL;
