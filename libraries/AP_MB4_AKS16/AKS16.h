@@ -31,6 +31,10 @@ public:
     bool test();            // Test that AKS16 + MB4 are valid
     static const struct AP_Param::GroupInfo var_info[];
     void printBytes(uint64_t);
+    float getEnc1();
+    float getEnc2();
+    int16_t getEncStatus();
+
 
 private:
     bool checkconv_enc_vals(float &e1, float &e2);

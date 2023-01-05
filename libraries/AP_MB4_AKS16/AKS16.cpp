@@ -291,6 +291,19 @@ void AKS16::recover() {
 
 }
 
+float AKS16::getEnc1() {
+    return encDeg1;
+}
+
+float AKS16::getEnc2() {
+    return encDeg2;
+}
+
+int16_t AKS16::getEncStatus() {
+    return encStatus;
+}
+
+
 #define MAX_LOOP_USEC   400
 
 void AKS16::update_encoders() {     // Backend process
