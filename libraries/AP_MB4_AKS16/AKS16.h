@@ -40,6 +40,7 @@ private:
     bool checkconv_enc_vals(float &e1, float &e2);
 
     bool  notYetInit;
+    bool  seeingMB4;
 
     uint8_t StatusInformationF1;
     uint8_t StatusInformationF5;

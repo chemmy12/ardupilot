@@ -88,7 +88,7 @@ const AP_Param::GroupInfo AKS16::var_info[] = {
 
 
 AKS16::AKS16():
-        notYetInit(true), sema(SEMA_NOT_AVAIL)
+        notYetInit(true), seeingMB4(false), sema(SEMA_NOT_AVAIL)
 {
     _enable.set(0);
 }
@@ -98,7 +98,7 @@ void AKS16::update()
 {
 
     if (notYetInit) {    // happens only once at boot
-        init_AKS16();
+        seeingMB4 = init_AKS16();
         createBackProcess();
         notYetInit = false;
         sema = SEMA_AVAIL;
@@ -107,6 +107,7 @@ void AKS16::update()
 //    hal.console->printf("AKS16::update(): Micros=%ld. m64=%lld\n", AP_HAL::micros(),  AP_HAL::micros64());
 
     if (!test()) {
+        seeingMB4 = false;
         if (!init_AKS16()) {
             hal.console->printf("AKS16::update(): could not init() MB4.\n");
             return;
@@ -115,7 +116,8 @@ void AKS16::update()
             hal.console->printf("AKS16::update(): MB4 alive test failed.\n");
             return;
         }
-    }
+    } else
+        seeingMB4 = true;
 
 
 }
@@ -246,7 +248,7 @@ bool AKS16::checkconv_enc_vals(float &e1, float &e2)
         encStatus |= SET_BIT(ENC1RANGE);
     }
     else {
-        e1 = _en1_degMin + (double)(encData1 - _en1_encMin) * (_en1_degMax - _en1_degMin) / (_en1_encMax - _en1_encMin);
+        e1 = _en1_degMin + (double)(((int32_t )encData1) - _en1_encMin) * (_en1_degMax - _en1_degMin) / (_en1_encMax - _en1_encMin);
         if (abs(e1 - enc1old) > MAX_STEP) {
             encStatus |= SET_BIT(ENC1STEP);
         }
@@ -258,7 +260,7 @@ bool AKS16::checkconv_enc_vals(float &e1, float &e2)
         encStatus |= SET_BIT(ENC2RANGE);
     }
     else {
-        e2 = _en2_degMin + (double) (encData2 - _en2_encMin) * (_en2_degMax - _en2_degMin) / (_en2_encMax - _en2_encMin);
+        e2 = _en2_degMin + (double) (((int32_t )encData2) - _en2_encMin) * (_en2_degMax - _en2_degMin) / (_en2_encMax - _en2_encMin);
         if (abs(e2 - enc2old) > MAX_STEP) {
             encStatus |= SET_BIT(ENC2STEP);
         }
@@ -308,7 +310,7 @@ int16_t AKS16::getEncStatus() {
 
 void AKS16::update_encoders() {     // Backend process
 
-    if (sema == SEMA_NOT_AVAIL)
+    if (sema == SEMA_NOT_AVAIL || !seeingMB4)
         return;
     sema = SEMA_NOT_AVAIL;
 
