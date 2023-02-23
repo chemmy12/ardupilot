@@ -1025,6 +1025,8 @@ private:
 
 public:
     void failsafe_check();      // failsafe.cpp
+
+    AKS16 &getAKS16()      { return aks16; };   // return the AKS16 instance
 };
 
 extern Copter copter;

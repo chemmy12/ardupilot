@@ -10,6 +10,8 @@
 
 #define ENCODER_COUNT   2
 
+#include "AKS16config.h"
+
 #include "AP_HAL/AP_HAL.h"
 #include <AP_Param/AP_Param.h>
 #include "mb4_1sf_driver.h"
@@ -19,7 +21,7 @@ extern const AP_HAL::HAL& hal;
 
 class AKS16 {
 public:
-    enum status_flags {SCDERR, DELAYERR, AGSERR, SVALID1, SVALID5, ENC1RANGE, ENC2RANGE, ENC1STEP, ENC2STEP, MB4_TIMEOUT};
+    enum status_flags {SCDERR, DELAYERR, AGSERR, SVALID1, SVALID5, ENC1RANGE, ENC2RANGE, ENC1STEP, ENC2STEP, MB4_TIMEOUT, OTHER_ERROR, ERR1, ERR2, ERR3, ERR4, ERR5};
     AKS16();
     bool init();
     void update();
@@ -34,6 +36,7 @@ public:
     float getEnc1();
     float getEnc2();
     int16_t getEncStatus();
+    static AKS16 *get_singleton() { return _singleton; }
 
 
 private:
@@ -41,6 +44,8 @@ private:
 
     bool  notYetInit;
     bool  seeingMB4;
+
+    static AKS16 *_singleton;
 
     uint8_t StatusInformationF1;
     uint8_t StatusInformationF5;
@@ -67,6 +72,11 @@ private:
     bool        sema;
 
 };
+
+namespace AP {
+    AKS16 *aks16();
+};
+
 
 #define SET_BIT(f)  (1 << f)
 

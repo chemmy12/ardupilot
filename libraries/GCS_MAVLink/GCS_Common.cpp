@@ -56,6 +56,8 @@
 #include <RC_Channel/RC_Channel.h>
 #include <AP_VisualOdom/AP_VisualOdom.h>
 
+#include <AP_MB4_AKS16/AKS16.h>
+
 #include "MissionItemProtocol_Waypoints.h"
 #include "MissionItemProtocol_Rally.h"
 #include "MissionItemProtocol_Fence.h"
@@ -2908,8 +2910,14 @@ float GCS_MAVLINK::vfr_hud_alt() const
     return global_position_current_loc.alt * 0.01f; // cm -> m
 }
 
+#define AKS_MAVLINK_ON_HUD
+
 void GCS_MAVLINK::send_vfr_hud()
 {
+#ifdef AKS_MAVLINK_ON_HUD
+    AKS16 *aks = AP::aks16();
+#endif
+
     AP_AHRS &ahrs = AP::ahrs();
 
     // return values ignored; we send stale data
@@ -2917,8 +2925,13 @@ void GCS_MAVLINK::send_vfr_hud()
 
     mavlink_msg_vfr_hud_send(
         chan,
+#ifdef AKS_MAVLINK_ON_HUD
+        aks->getEnc1(),       // vfr_hud_airspeed(),
+        aks->getEnc2(),         // ahrs.groundspeed(),
+#else
         vfr_hud_airspeed(),
         ahrs.groundspeed(),
+#endif
         (ahrs.yaw_sensor / 100) % 360,
         abs(vfr_hud_throttle()),
         vfr_hud_alt(),
