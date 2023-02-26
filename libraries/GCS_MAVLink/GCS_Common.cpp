@@ -2927,15 +2927,18 @@ void GCS_MAVLINK::send_vfr_hud()
         chan,
 #ifdef AKS_MAVLINK_ON_HUD
         aks->getEnc1(),       // vfr_hud_airspeed(),
-        aks->getEnc2(),         // ahrs.groundspeed(),
 #else
         vfr_hud_airspeed(),
-        ahrs.groundspeed(),
 #endif
+        ahrs.groundspeed(),
         (ahrs.yaw_sensor / 100) % 360,
         abs(vfr_hud_throttle()),
         vfr_hud_alt(),
+#ifdef AKS_MAVLINK_ON_HUD
+        aks->getEnc2());         // ahrs.groundspeed(),
+#else
         vfr_hud_climbrate());
+#endif
 }
 
 /*

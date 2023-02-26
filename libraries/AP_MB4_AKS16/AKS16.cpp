@@ -132,10 +132,9 @@ void AKS16::update()
             seeingMB4 = true;
             return;
         }
-    } else
+    }
+    else
         seeingMB4 = true;
-
-
 }
 
 
@@ -143,9 +142,9 @@ void AKS16::update()
 bool AKS16::test() {
 
     if (sema == SEMA_NOT_AVAIL) {
-        hal.scheduler->delay_microseconds(200);
+        hal.scheduler->delay_microseconds(500);
         if (sema == SEMA_NOT_AVAIL) {
-            encStatus |= SET_BIT(ERR5);
+            encStatus |= SET_BIT(BAD_SEMA);
             Write_MB4();    // Write to logger
             return false;
         }
@@ -153,16 +152,16 @@ bool AKS16::test() {
 
 
     sema = SEMA_NOT_AVAIL;
-    hal.scheduler->delay_microseconds(200);
+//    hal.scheduler->delay_microseconds(200);
 
     uint8_t res = mb4.mb4_read_param(&mb4.MB4_VERSION);
-    hal.console->printf("AKS16: MB4 version %d, revision #%x\n", res, (unsigned int)mb4.mb4_read_param(&mb4.MB4_REVISION));
+//    hal.console->printf("AKS16: MB4 version %d, revision #%x\n", res, (unsigned int)mb4.mb4_read_param(&mb4.MB4_REVISION));
     if (res != 0x84) {
         if (res == 0)
             hal.console->printf("AKS16: MB4 not found\n");
         else
             hal.console->printf("AKS16: MB4 version bad = #%x\n", (unsigned int)res);
-        encStatus |= SET_BIT(ERR1);
+        encStatus |= SET_BIT(BAD_VER_REV);
         Write_MB4();    // Write to logger
         sema = SEMA_AVAIL;
         return false;
@@ -170,7 +169,7 @@ bool AKS16::test() {
 
     if (((res = mb4.mb4_read_param(&mb4.MB4_CFGCH1)) & 0x01) != 1) {
         hal.console->printf("AKS16: MB4_CFGCH1 bad = #%x\n", (unsigned int)res);
-        encStatus |= SET_BIT(ERR1);
+        encStatus |= SET_BIT(BAD_VER_REV);
         Write_MB4();    // Write to logger
         sema = SEMA_AVAIL;
         return false;
@@ -178,7 +177,7 @@ bool AKS16::test() {
 
     if ((res = mb4.mb4_read_param(&mb4.MB4_SLAVELOC5)) != 1) {
         hal.console->printf("AKS16: MB4_SLAVELOC5 bad = #%x\n", (unsigned int)res);
-        encStatus |= SET_BIT(ERR2);
+        encStatus |= SET_BIT(SLAVE_LOC);
         Write_MB4();    // Write to logger
         sema = SEMA_AVAIL;
         return false;
@@ -187,7 +186,7 @@ bool AKS16::test() {
     uint8_t res2 = mb4.mb4_read_param(&mb4.MB4_ENSCD5);
     if (res != 1 || res2 != 1) {
         hal.console->printf("AKS16: MB4_ENSCD1 bad = #%x, MB4_ENSCD5 bad = #%x\n", (unsigned int)res, res2);
-        encStatus |= SET_BIT(ERR3);
+        encStatus |= SET_BIT(ENSCD_ERR);
         Write_MB4();    // Write to logger
         sema = SEMA_AVAIL;
         return false;
@@ -197,7 +196,7 @@ bool AKS16::test() {
     StatusInformationF5 = mb4.mb4_read_param(&mb4.MB4_SVALID5);
     if ((StatusInformationF1 & StatusInformationF5 & 0x01) != 0x01) {
         hal.console->printf("AKS16: SVALID1,5 bad F1 = #%x, F5 = #%x\n", (unsigned int)StatusInformationF1, StatusInformationF5);
-        encStatus |= SET_BIT(ERR4);
+        encStatus |= SET_BIT(SVALID_ERR);
         Write_MB4();    // Write to logger
         sema = SEMA_AVAIL;
         return false;
@@ -339,13 +338,13 @@ int16_t AKS16::getEncStatus() {
 
 void AKS16::update_encoders() {     // Backend process
 
-    if (sema == SEMA_NOT_AVAIL) {
-        Write_MB4();
-        return;
-    }
     if (!seeingMB4) {
         encStatus |= SET_BIT(OTHER_ERROR);
         Write_MB4();    // Write to logger
+        return;
+    }
+    if (sema == SEMA_NOT_AVAIL) {   // Actually keep old / previous encoder values
+        Write_MB4();
         return;
     }
     sema = SEMA_NOT_AVAIL;
