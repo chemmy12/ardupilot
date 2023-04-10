@@ -38,6 +38,9 @@ public:
     int16_t getEncStatus();
     static AKS16 *get_singleton() { return _singleton; }
 
+    float getPitch()    { return encDeg1; }
+    float getRoll()    { return encDeg2; }
+
 
 private:
     bool checkconv_enc_vals(float &e1, float &e2);

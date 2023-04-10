@@ -7,6 +7,8 @@
 
 #include "AC_CustomControl_Backend.h"
 
+#include "AP_MB4_AKS16/AKS16.h"
+
 #ifndef CUSTOMCONTROL_PID_ENABLED
     #define CUSTOMCONTROL_PID_ENABLED AP_CUSTOMCONTROL_ENABLED
 #endif
@@ -24,6 +26,10 @@ public:
     // user settable parameters
     static const struct AP_Param::GroupInfo var_info[];
 
+//    AKS16 &getAKS16()      { return aks16; };   // return the AKS16 instance
+
+
+
 protected:
     // put controller related variable here
 
@@ -36,6 +42,10 @@ protected:
     AC_PID _pid_atti_rate_roll;
     AC_PID _pid_atti_rate_pitch;
     AC_PID _pid_atti_rate_yaw;
+
+    AKS16   *aks16;       // chemmy: Encoder class instance
+
+
 };
 
 #endif

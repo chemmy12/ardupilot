@@ -244,6 +244,8 @@ AC_CustomControl_PID::AC_CustomControl_PID(AC_CustomControl& frontend, AP_AHRS_V
     _pid_atti_rate_yaw(AC_ATC_MULTI_RATE_YAW_P * 0.90f, AC_ATC_MULTI_RATE_YAW_I * 0.90f, AC_ATC_MULTI_RATE_YAW_D * 0.90f, 0.0f, AC_ATC_MULTI_RATE_YAW_IMAX * 0.90f, AC_ATC_MULTI_RATE_RP_FILT_HZ * 0.90f, AC_ATC_MULTI_RATE_YAW_FILT_HZ * 0.90f, 0.0f, dt)
 {
     AP_Param::setup_object_defaults(this, var_info);
+
+    aks16 = AKS16::get_singleton(); // getAKS16();
 }
 
 Vector3f AC_CustomControl_PID::update()
@@ -266,7 +268,13 @@ Vector3f AC_CustomControl_PID::update()
 
     // run custom controller after here
      Quaternion attitude_body, attitude_target;
-    _ahrs->get_quat_body_to_ned(attitude_body);
+    float pitch = aks16->getPitch();
+    float roll = aks16->getRoll();
+    hal.console->printf("AC_Custom_pid: pitch=%f, roll=%f", pitch, roll);
+
+//    _ahrs->get_quat_body_to_ned(attitude_body);
+
+
 
     attitude_target = _att_control->get_attitude_target_quat();
     // This vector represents the angular error to rotate the thrust vector using x and y and heading using z
