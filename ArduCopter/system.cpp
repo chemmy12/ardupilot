@@ -185,6 +185,8 @@ void Copter::init_ardupilot()
 
 #if AC_CUSTOMCONTROL_MULTI_ENABLED == ENABLED
     custom_control.init();
+//    copter.custom_control.set_custom_controller(ch_flag == AuxSwitchPos::HIGH);
+    copter.custom_control.set_custom_controller(true);
 #endif
 
     // set landed flags

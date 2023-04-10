@@ -6,8 +6,8 @@
 #include <AP_Common/AP_Common.h>
 #include <AP_Param/AP_Param.h>
 #include <AP_AHRS/AP_AHRS_View.h>
-#include <AC_AttitudeControl/AC_AttitudeControl_Multi.h>
-#include <AP_Motors/AP_MotorsMulticopter.h>
+#include <AC_AttitudeControl/AC_AttitudeControl_Heli.h>
+#include <AP_Motors/AP_MotorsHeli.h>
 #include <AP_Logger/AP_Logger.h>
 
 #if AP_CUSTOMCONTROL_ENABLED
@@ -20,7 +20,7 @@ class AC_CustomControl_Backend;
 
 class AC_CustomControl {
 public:
-    AC_CustomControl(AP_AHRS_View*& ahrs, AC_AttitudeControl_Multi*& _att_control, AP_MotorsMulticopter*& motors, float dt);
+    AC_CustomControl(AP_AHRS_View*& ahrs, AC_AttitudeControl_Heli*& _att_control, AP_MotorsHeli*& motors, float dt);
 
     CLASS_NO_COPY(AC_CustomControl);  /* Do not allow copies */
 
@@ -59,8 +59,8 @@ protected:
 
     // References to external libraries
     AP_AHRS_View*& _ahrs;
-    AC_AttitudeControl_Multi*& _att_control;
-    AP_MotorsMulticopter*& _motors;
+    AC_AttitudeControl_Heli*& _att_control;
+    AP_MotorsHeli*& _motors;
 
     AP_Enum<CustomControlType> _controller_type;
     AP_Int8 _custom_controller_mask;

@@ -614,7 +614,7 @@ bool RC_Channel_Copter::do_aux_function(const aux_func_t ch_option, const AuxSwi
 
 #if AC_CUSTOMCONTROL_MULTI_ENABLED == ENABLED
         case AUX_FUNC::CUSTOM_CONTROLLER:
-            copter.custom_control.set_custom_controller(ch_flag == AuxSwitchPos::HIGH);
+            copter.custom_control.set_custom_controller(true /* ch_flag == AuxSwitchPos::HIGH*/);
             break;
 #endif
 

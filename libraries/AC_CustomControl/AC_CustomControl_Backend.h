@@ -7,7 +7,7 @@
 class AC_CustomControl_Backend
 {
 public:
-    AC_CustomControl_Backend(AC_CustomControl& frontend, AP_AHRS_View*& ahrs, AC_AttitudeControl_Multi*& att_control, AP_MotorsMulticopter*& motors, float dt) :
+    AC_CustomControl_Backend(AC_CustomControl& frontend, AP_AHRS_View*& ahrs, AC_AttitudeControl_Heli*& att_control, AP_MotorsHeli*& motors, float dt) :
         _frontend(frontend),
         _ahrs(ahrs),
         _att_control(att_control),
@@ -26,8 +26,8 @@ public:
 protected:
     // References to external libraries
     AP_AHRS_View*& _ahrs;
-    AC_AttitudeControl_Multi*& _att_control;
-    AP_MotorsMulticopter*& _motors;
+    AC_AttitudeControl_Heli*& _att_control;
+    AP_MotorsHeli*& _motors;
     AC_CustomControl& _frontend;
 };
 

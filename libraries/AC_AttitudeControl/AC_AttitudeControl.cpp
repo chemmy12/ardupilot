@@ -707,9 +707,9 @@ void AC_AttitudeControl::attitude_controller_run_quat()
     Quaternion attitude_body;
     _ahrs.get_quat_body_to_ned(attitude_body);
 
-    float pitch = aks16->getPitch();
-    float roll = aks16->getRoll();
-    hal.console->printf("AC_AttitudeControl: pitch=%f, roll=%f", pitch, roll);
+//    float pitch = aks16->getPitch();
+//    float roll = aks16->getRoll();
+//    hal.console->printf("AC_AttitudeControl: pitch=%f, roll=%f", pitch, roll);
 
 
     // This vector represents the angular error to rotate the thrust vector using x and y and heading using z
