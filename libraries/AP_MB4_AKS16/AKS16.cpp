@@ -192,8 +192,8 @@ bool AKS16::test() {
         return false;
     }
 
-    StatusInformationF1 = mb4.mb4_read_param(&mb4.MB4_SVALID1);
-    StatusInformationF5 = mb4.mb4_read_param(&mb4.MB4_SVALID5);
+    uint8_t StatusInformationF1 = mb4.mb4_read_param(&mb4.MB4_SVALID1);
+    uint8_t StatusInformationF5 = mb4.mb4_read_param(&mb4.MB4_SVALID5);
     if ((StatusInformationF1 & StatusInformationF5 & 0x01) != 0x01) {
         hal.console->printf("AKS16: SVALID1,5 bad F1 = #%x, F5 = #%x\n", (unsigned int)StatusInformationF1, StatusInformationF5);
         encStatus |= SET_BIT(SVALID_ERR);
@@ -270,16 +270,24 @@ void AKS16::createBackProcess()
 bool AKS16::checkconv_enc_vals(float &e1, float &e2)
 {
     static float enc1old, enc2old;
+    static int32_t frzTime1, frzTime2;
 
-    encStatus &= ~(SET_BIT(ENC1RANGE) | SET_BIT(ENC2RANGE));
+    encStatus &= ~(SET_BIT(ENC1RANGE) | SET_BIT(ENC2RANGE) | SET_BIT(ENC_FREEZE1) | SET_BIT(ENC_FREEZE2));
     if ((encData1 < _en1_encMin * (1.0 - PERCENT_EXTENDER/100.0)) || (encData1 > _en1_encMax * (1.0 + PERCENT_EXTENDER/100.0))) {
         e1 = ERROR_VAL;
         encStatus |= SET_BIT(ENC1RANGE);
     }
     else {
         e1 = _en1_degMin + (double)(((int32_t )encData1) - _en1_encMin) * (_en1_degMax - _en1_degMin) / (_en1_encMax - _en1_encMin);
-        if (abs(e1 - enc1old) > MAX_STEP) {
+        float e1Delta = abs(e1 - enc1old);
+        if (e1Delta > MAX_STEP) {
             encStatus |= SET_BIT(ENC1STEP);
+        }
+        if (fabs(e1Delta) < 0.000001)
+            frzTime1 = AP_HAL::millis();
+        else {
+            if (frzTime1 - AP_HAL::millis() > FREEZE_DURATION_MS)
+                encStatus &= SET_BIT(ENC_FREEZE1);
         }
         enc1old = e1;
     }
@@ -290,8 +298,15 @@ bool AKS16::checkconv_enc_vals(float &e1, float &e2)
     }
     else {
         e2 = _en2_degMin + (double) (((int32_t )encData2) - _en2_encMin) * (_en2_degMax - _en2_degMin) / (_en2_encMax - _en2_encMin);
-        if (abs(e2 - enc2old) > MAX_STEP) {
+        float e2Delta = abs(e2 - enc2old);
+        if (e2Delta > MAX_STEP) {
             encStatus |= SET_BIT(ENC2STEP);
+        }
+        if (fabs(e2Delta) < 0.000001)
+            frzTime2 = AP_HAL::millis();
+        else {
+            if (frzTime2 - AP_HAL::millis() > FREEZE_DURATION_MS)
+                encStatus &= SET_BIT(ENC_FREEZE2);
         }
         enc2old = e2;
     }
@@ -303,15 +318,51 @@ bool AKS16::checkconv_enc_vals(float &e1, float &e2)
     return true;
 }
 
-void AKS16::printBytes(uint64_t v)
+bool AKS16::check_mks16_reliable()
 {
-    hal.console->printf("v = %llx, composed of: ", v);
-    for (int i = 0; i < 8; i++) {
-        hal.console->printf("%x, ", (int)(v & 0xff));
-        v = v >> 8;
+    static uint32_t unreliableTimer = 0;
+
+    uint32_t now = AP_HAL::millis();
+    if ((encStatus & ~(SET_BIT(CUSTOM_CTRL))) == 0) {
+        unreliableTimer = now;
+        encStatus &= ~SET_BIT(CUSTOM_CTRL);
+        return true;
+    }
+    if (now - unreliableTimer > BAD_ENC_MS) {
+        if (!(encStatus & SET_BIT(CUSTOM_CTRL))) {
+            encStatus |= SET_BIT(CUSTOM_CTRL);
+            return false;
+        }
+        encStatus |= SET_BIT(CUSTOM_CTRL);
     }
 
+    return true;
 }
+
+bool AKS16::isCustCtlBadFlag()
+{
+    return (encStatus & SET_BIT(CUSTOM_CTRL)) ? true : false;
+}
+
+//void AKS16::enableCustomCtrl(bool st)
+//{
+//    if (st) // enable custom control based on AKS16 encoders
+//        encStatus &= ~SET_BIT(CUSTOM_CTRL);
+//    else {
+//        encStatus |= SET_BIT(CUSTOM_CTRL);
+//        copter.custom_control.set_custom_controller(false);
+//    }
+//}
+
+//void AKS16::printBytes(uint64_t v)
+//{
+//    hal.console->printf("v = %llx, composed of: ", v);
+//    for (int i = 0; i < 8; i++) {
+//        hal.console->printf("%x, ", (int)(v & 0xff));
+//        v = v >> 8;
+//    }
+//
+//}
 
 void AKS16::recover() {
     mb4.mb4_write_param(&mb4.MB4_BREAK, 0x01); //BREAK
@@ -352,7 +403,7 @@ void AKS16::update_encoders() {     // Backend process
     int StatusInformationF0;
     uint64_t startTime = AP_HAL::micros64();
 
-    encStatus = 0;      // resetting encoder status
+    encStatus &= ~(SET_BIT(CUSTOM_CTRL));      // resetting encoder status
 
     do {
         StatusInformationF0 = mb4.mb4_read_param(&mb4.MB4_EOT);
@@ -373,14 +424,14 @@ void AKS16::update_encoders() {     // Backend process
     mb4.mb4_write_param(&mb4.MB4_HOLDBANK,0x01);
 
     //Read and reset SVALID flags in Status Information register 0xF1
-    StatusInformationF1 = mb4.mb4_read_param(&mb4.MB4_SVALID1);
-    StatusInformationF5 = mb4.mb4_read_param(&mb4.MB4_SVALID5);
+    uint8_t StatusInformationF1 = mb4.mb4_read_param(&mb4.MB4_SVALID1);
+    uint8_t StatusInformationF5 = mb4.mb4_read_param(&mb4.MB4_SVALID5);
     mb4.mb4_write_param(&mb4.MB4_SVALID1, 0x00);
     mb4.mb4_write_param(&mb4.MB4_SVALID5, 0x00);
 
-    StatusInformationF0_1 = mb4.mb4_read_param(&mb4.MB4_nSCDERR);
-    StatusInformationF0_2 = mb4.mb4_read_param(&mb4.MB4_nDELAYERR);
-    StatusInformationF0_3 = mb4.mb4_read_param(&mb4.MB4_nAGSERR);
+    uint8_t StatusInformationF0_1 = mb4.mb4_read_param(&mb4.MB4_nSCDERR);
+    uint8_t StatusInformationF0_2 = mb4.mb4_read_param(&mb4.MB4_nDELAYERR);
+    uint8_t StatusInformationF0_3 = mb4.mb4_read_param(&mb4.MB4_nAGSERR);
 
 //    encStatus &= ~(SET_BIT(SCDERR) | SET_BIT(DELAYERR) | SET_BIT(AGSERR) | SET_BIT(SVALID1) | SET_BIT(SVALID5));
 
@@ -416,6 +467,9 @@ void AKS16::update_encoders() {     // Backend process
 
     checkconv_enc_vals(encDeg1, encDeg2);
 //    Write_MB4();    // Write to logger
+
+    check_mks16_reliable();
+
     slow_write_mb4(1000 / LOG_FREQ);
 //    hal.console->printf("Logging status=%d\n", encStatus);
 

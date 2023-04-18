@@ -613,8 +613,16 @@ bool RC_Channel_Copter::do_aux_function(const aux_func_t ch_option, const AuxSwi
             break;
 
 #if AC_CUSTOMCONTROL_MULTI_ENABLED == ENABLED
+//        case AUX_FUNC::CUSTOM_CONTROLLER:
+//            copter.custom_control.set_custom_controller(ch_flag == AuxSwitchPos::HIGH); // change to verify errors in AKS Chemmy
+//            break;
         case AUX_FUNC::CUSTOM_CONTROLLER:
-            copter.custom_control.set_custom_controller(ch_flag == AuxSwitchPos::HIGH); // change to verify errors in AKS Chemmy
+            if (copter.aks16.isCustCtlBadFlag()) {
+                copter.custom_control.set_custom_controller(false);
+            }
+            else {
+                copter.custom_control.set_custom_controller(ch_flag == AuxSwitchPos::HIGH); // change to verify errors in AKS Chemmy
+            }
             break;
 #endif
 

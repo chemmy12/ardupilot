@@ -5,7 +5,6 @@
 #ifndef ARDUPILOT2_MB4_AKS16_ENC_H
 #define ARDUPILOT2_MB4_AKS16_ENC_H
 
-
 //#include "SPIDevice.h"
 
 #define ENCODER_COUNT   2
@@ -23,7 +22,7 @@ class AKS16 {
 public:
     enum status_flags {SCDERR, DELAYERR, AGSERR, SVALID1, SVALID5, ENC1RANGE, ENC2RANGE, ENC1STEP, ENC2STEP, MB4_TIMEOUT,
             OTHER_ERROR, BAD_VER_REV, SLAVE_LOC, ENSCD_ERR, SVALID_ERR, BAD_SEMA,
-            ENC_FREEZE, DISABLE_ENC};
+            ENC_FREEZE1, ENC_FREEZE2, DISABLE_ENC, CUSTOM_CTRL};
     AKS16();
     bool init();
     void update();
@@ -35,7 +34,7 @@ public:
     void slow_write_mb4(short miligap);   // write to logger with a millis delay
     bool test();            // Test that AKS16 + MB4 are valid
     static const struct AP_Param::GroupInfo var_info[];
-    void printBytes(uint64_t);
+//    void printBytes(uint64_t);
     float getEnc1();
     float getEnc2();
     uint32_t getEncStatus();
@@ -43,6 +42,10 @@ public:
 
     float getPitch()    { return encDeg1; }
     float getRoll()    { return encDeg2; }
+
+    bool check_mks16_reliable();
+    bool isCustCtlBadFlag();
+//    void enableCustomCtrl(bool st);
 
 
 private:
@@ -53,15 +56,12 @@ private:
 
     static AKS16 *_singleton;
 
-    uint8_t StatusInformationF1;
-    uint8_t StatusInformationF5;
-    uint8_t StatusInformationF0_1;
-    uint8_t StatusInformationF0_2;
-    uint8_t StatusInformationF0_3;
     uint32_t encData1;
     uint32_t encData2;
     float encDeg1;
     float encDeg2;
+    float lowPassEnc1;
+    float lowPassEnc2;
     MB4 mb4;
     uint32_t encStatus;
 
