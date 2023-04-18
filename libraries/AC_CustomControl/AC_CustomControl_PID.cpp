@@ -57,7 +57,7 @@ Vector3f AC_CustomControl_PID::update()
      Quaternion attitude_body, attitude_target;
     float pitch = aks16->getPitch();
     float roll = aks16->getRoll();
-    hal.console->printf("AC_Custom_pid: pitch=%f, roll=%f", pitch, roll);
+
 
 //    _ahrs->get_quat_body_to_ned(attitude_body);
 
@@ -75,9 +75,13 @@ Vector3f AC_CustomControl_PID::update()
     // run rate controller
 //    Vector3f encoder_latest = _ahrs->get_gyro_latest();
     Vector3f motor_out;
-    motor_out.x = _pid_angle_roll2.update_all(attitude_target[0], roll, 1);
-    motor_out.y = _pid_angle_pitch2.update_all(attitude_target[1], pitch, 1);
+    motor_out.x = _pid_angle_roll2.update_all(degrees(attitude_euler[0]), roll, 1);
+    motor_out.y = _pid_angle_pitch2.update_all(degrees(attitude_euler[1]), pitch, 1);
     motor_out.z = 0;
+
+    hal.console->printf("Pitch enc=%f, euler=%f, euler deg=%f motor.c=%f\n", pitch, attitude_euler[1], degrees(attitude_euler[1]), motor_out.y);
+
+//    hal.console->printf("AC_Custom_pid: pitch=%f, roll=%f, x=%f, y=%f", pitch, roll, motor_out.x, motor_out.y);
 
     return motor_out;
 }

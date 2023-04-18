@@ -21,7 +21,9 @@ extern const AP_HAL::HAL& hal;
 
 class AKS16 {
 public:
-    enum status_flags {SCDERR, DELAYERR, AGSERR, SVALID1, SVALID5, ENC1RANGE, ENC2RANGE, ENC1STEP, ENC2STEP, MB4_TIMEOUT, OTHER_ERROR, BAD_VER_REV, SLAVE_LOC, ENSCD_ERR, SVALID_ERR, BAD_SEMA};
+    enum status_flags {SCDERR, DELAYERR, AGSERR, SVALID1, SVALID5, ENC1RANGE, ENC2RANGE, ENC1STEP, ENC2STEP, MB4_TIMEOUT,
+            OTHER_ERROR, BAD_VER_REV, SLAVE_LOC, ENSCD_ERR, SVALID_ERR, BAD_SEMA,
+            ENC_FREEZE, DISABLE_ENC};
     AKS16();
     bool init();
     void update();
@@ -30,12 +32,13 @@ public:
     void update_encoders(); // backend running process 2nd version
     void recover();
     void Write_MB4();       // write to logger
+    void slow_write_mb4(short miligap);   // write to logger with a millis delay
     bool test();            // Test that AKS16 + MB4 are valid
     static const struct AP_Param::GroupInfo var_info[];
     void printBytes(uint64_t);
     float getEnc1();
     float getEnc2();
-    int16_t getEncStatus();
+    uint32_t getEncStatus();
     static AKS16 *get_singleton() { return _singleton; }
 
     float getPitch()    { return encDeg1; }
@@ -60,7 +63,7 @@ private:
     float encDeg1;
     float encDeg2;
     MB4 mb4;
-    uint16_t encStatus;
+    uint32_t encStatus;
 
     AP_Float    _en1_degMin;
     AP_Int32    _en1_encMin;

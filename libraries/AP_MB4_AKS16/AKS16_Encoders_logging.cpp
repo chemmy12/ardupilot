@@ -20,3 +20,14 @@ void AKS16::Write_MB4() // const
     };
     AP::logger().WriteBlock(&pkt, sizeof(pkt));
 }
+
+void AKS16::slow_write_mb4(short miligap)
+{
+    static int last = 0;
+
+    int now = AP_HAL::millis();
+    if (last == 0 || now - last > miligap) {
+        last = now;
+        Write_MB4();
+    }
+}

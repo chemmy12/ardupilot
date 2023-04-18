@@ -330,7 +330,7 @@ float AKS16::getEnc2() {
     return encDeg2;
 }
 
-int16_t AKS16::getEncStatus() {
+uint32_t AKS16::getEncStatus() {
     return encStatus;
 }
 
@@ -415,7 +415,8 @@ void AKS16::update_encoders() {     // Backend process
     mb4.mb4_write_param(&mb4.MB4_HOLDBANK,0x00);
 
     checkconv_enc_vals(encDeg1, encDeg2);
-    Write_MB4();    // Write to logger
+//    Write_MB4();    // Write to logger
+    slow_write_mb4(1000 / LOG_FREQ);
 //    hal.console->printf("Logging status=%d\n", encStatus);
 
     //If Status not ok, check data channel configuration
