@@ -283,11 +283,11 @@ bool AKS16::checkconv_enc_vals(float &e1, float &e2)
         if (e1Delta > MAX_STEP) {
             encStatus |= SET_BIT(ENC1STEP);
         }
-        if (fabs(e1Delta) < 0.000001)
+        if (fabs(e1Delta) > 0.000001)
             frzTime1 = AP_HAL::millis();
         else {
-            if (frzTime1 - AP_HAL::millis() > FREEZE_DURATION_MS)
-                encStatus &= SET_BIT(ENC_FREEZE1);
+            if (AP_HAL::millis() - frzTime1 > FREEZE_DURATION_MS)
+                encStatus |= SET_BIT(ENC_FREEZE1);
         }
         enc1old = e1;
     }
@@ -302,17 +302,17 @@ bool AKS16::checkconv_enc_vals(float &e1, float &e2)
         if (e2Delta > MAX_STEP) {
             encStatus |= SET_BIT(ENC2STEP);
         }
-        if (fabs(e2Delta) < 0.000001)
+        if (fabs(e2Delta) > 0.000001)
             frzTime2 = AP_HAL::millis();
         else {
-            if (frzTime2 - AP_HAL::millis() > FREEZE_DURATION_MS)
-                encStatus &= SET_BIT(ENC_FREEZE2);
+            if (AP_HAL::millis() - frzTime2 > FREEZE_DURATION_MS)
+                encStatus |= SET_BIT(ENC_FREEZE2);
         }
         enc2old = e2;
     }
 
     if (encStatus & (SET_BIT(ENC1RANGE) | SET_BIT(ENC2RANGE))) {
-        hal.console->printf("c");
+//        hal.console->printf("c");
         return false;
     }
     return true;
@@ -389,6 +389,8 @@ uint32_t AKS16::getEncStatus() {
 
 void AKS16::update_encoders() {     // Backend process
 
+    encStatus &= SET_BIT(CUSTOM_CTRL);      // resetting encoder status - All flags but CUSTOM_CTRL
+
     if (!seeingMB4) {
         encStatus |= SET_BIT(OTHER_ERROR);
         Write_MB4();    // Write to logger
@@ -402,8 +404,6 @@ void AKS16::update_encoders() {     // Backend process
 
     int StatusInformationF0;
     uint64_t startTime = AP_HAL::micros64();
-
-    encStatus &= ~(SET_BIT(CUSTOM_CTRL));      // resetting encoder status
 
     do {
         StatusInformationF0 = mb4.mb4_read_param(&mb4.MB4_EOT);

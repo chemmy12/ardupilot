@@ -13,8 +13,19 @@ void Copter::userhook_FastLoop()
 {
     // put your 100Hz code here
 
-    if (!copter.aks16.check_mks16_reliable())       // move away of custom control when we have bad encoders
-        copter.custom_control.set_custom_controller(false);
+    static bool custCtrlAllowed = true;
+
+    if (copter.aks16.isCustCtlBadFlag()) {
+        if (custCtrlAllowed) {
+            copter.custom_control.set_custom_controller(false);
+            custCtrlAllowed = false;
+        }
+    }
+    else
+        custCtrlAllowed = true;
+//
+//    if (!copter.aks16.check_mks16_reliable())       // move away of custom control when we have bad encoders
+//        copter.custom_control.set_custom_controller(false);
 
 }
 #endif
