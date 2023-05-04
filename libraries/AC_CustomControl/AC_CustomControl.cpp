@@ -118,6 +118,8 @@ void AC_CustomControl::set_custom_controller(bool enabled)
     // double logging switch makes the state change very clear in the log
     log_switch();
 
+
+
     _custom_controller_active = false;
 
     // don't allow accidental main controller reset without active custom controller

@@ -2416,44 +2416,61 @@ MAV_RESULT GCS_MAVLINK::_set_mode_common(const MAV_MODE _base_mode, const uint32
     return MAV_RESULT_DENIED;
 }
 
-#if AP_OPTICALFLOW_ENABLED
+// #if AP_OPTICALFLOW_ENABLED
 /*
   send OPTICAL_FLOW message
  */
 void GCS_MAVLINK::send_opticalflow()
 {
-    const AP_OpticalFlow *optflow = AP::opticalflow();
+//    const AP_OpticalFlow *optflow = AP::opticalflow();
+
+//    hal.console->printf("we are at GCS_MAVLINK::send_opticalflow()\n");
+
+
 
     // exit immediately if no optical flow sensor or not healthy
-    if (optflow == nullptr ||
-        !optflow->healthy()) {
-        return;
-    }
+//    if (optflow == nullptr ||
+//        !optflow->healthy()) {
+//        return;
+//    }
+
+#define AKS_MAVLINK_ON_HUD
+#ifdef AKS_MAVLINK_ON_HUD
+    AKS16 *aks = AP::aks16();
+
+#endif
 
     // get rates from sensor
-    const Vector2f &flowRate = optflow->flowRate();
-    const Vector2f &bodyRate = optflow->bodyRate();
+//    const Vector2f &flowRate = optflow->flowRate();
+//    const Vector2f &bodyRate = optflow->bodyRate();
 
-    float hagl;
-    if (!AP::ahrs().get_hagl(hagl)) {
-        hagl = 0;
-    }
+//    float hagl;
+//    if (!AP::ahrs().get_hagl(hagl)) {
+//        hagl = 0;
+//    }
 
     // populate and send message
+//    static inline void mavlink_msg_optical_flow_send(mavlink_channel_t chan, uint64_t time_usec, uint8_t sensor_id, int16_t flow_x, int16_t flow_y, float flow_comp_m_x, float flow_comp_m_y, uint8_t quality, float ground_distance, float flow_rate_x, float flow_rate_y)
+
     mavlink_msg_optical_flow_send(
         chan,
         AP_HAL::millis(),
         0, // sensor id is zero
-        flowRate.x,
-        flowRate.y,
-        flowRate.x - bodyRate.x,
-        flowRate.y - bodyRate.y,
-        optflow->quality(),
-        hagl,  // ground distance (in meters) set to zero
-        flowRate.x,
-        flowRate.y);
+        aks->getEncStatus(),  // enc status low //flowRate.x,
+        aks->getEncStatus() << 16,  // aks status high //flowRate.y,
+        aks->getEnc1(),
+        aks->getEnc2(),
+        aks->getFlightMode(),
+//        flowRate.x - bodyRate.x,
+//        flowRate.y - bodyRate.y,
+//        optflow->quality(),
+        0,  // hagl,  // ground distance (in meters) set to zero
+        6,7
+//        flowRate.x,
+//        flowRate.y
+        );
 }
-#endif  // AP_OPTICALFLOW_ENABLED
+//  #endif  // AP_OPTICALFLOW_ENABLED
 
 /*
   send AUTOPILOT_VERSION packet
@@ -5577,10 +5594,10 @@ bool GCS_MAVLINK::try_send_message(const enum ap_message id)
         break;
 
     case MSG_OPTICAL_FLOW:
-#if AP_OPTICALFLOW_ENABLED
+// #if AP_OPTICALFLOW_ENABLED  // changed by chemmy
         CHECK_PAYLOAD_SIZE(OPTICAL_FLOW);
         send_opticalflow();
-#endif
+//#endif
         break;
 
     case MSG_ATTITUDE_TARGET:

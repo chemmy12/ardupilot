@@ -187,6 +187,7 @@ void Copter::init_ardupilot()
     custom_control.init();
 //    copter.custom_control.set_custom_controller(ch_flag == AuxSwitchPos::HIGH);
     copter.custom_control.set_custom_controller(true);
+    copter.aks16.setFlightMode(true);
 #endif
 
     // set landed flags

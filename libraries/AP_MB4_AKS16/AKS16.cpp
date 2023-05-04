@@ -88,7 +88,8 @@ const AP_Param::GroupInfo AKS16::var_info[] = {
 
 
 AKS16::AKS16():
-        notYetInit(true), seeingMB4(false), sema(SEMA_NOT_AVAIL)
+        notYetInit(true), seeingMB4(false), sema(SEMA_NOT_AVAIL),
+        advancedFlightMode(1)
 {
     _enable.set(0);
 

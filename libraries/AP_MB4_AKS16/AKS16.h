@@ -47,6 +47,9 @@ public:
     bool isCustCtlBadFlag();
 //    void enableCustomCtrl(bool st);
 
+    void setFlightMode(int v)   { advancedFlightMode = v; }
+    uint8_t getFlightMode()     { return advancedFlightMode; }
+
 
 private:
     bool checkconv_enc_vals(float &e1, float &e2);
@@ -74,6 +77,8 @@ private:
     AP_Float    _en2_degMax;
     AP_Int32    _en2_encMax;
     AP_Int8     _enable;
+
+    uint8_t     advancedFlightMode;
 
     bool        sema;
 

@@ -293,9 +293,9 @@ public:
 #if AP_MAVLINK_BATTERY2_ENABLED
     void send_battery2();
 #endif
-#if AP_OPTICALFLOW_ENABLED
+// #if AP_OPTICALFLOW_ENABLED  // Changed by chemmy
     void send_opticalflow();
-#endif
+// #endif
     virtual void send_attitude() const;
     virtual void send_attitude_quaternion() const;
     void send_autopilot_version() const;

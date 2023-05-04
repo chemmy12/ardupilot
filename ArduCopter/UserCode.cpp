@@ -18,6 +18,7 @@ void Copter::userhook_FastLoop()
     if (copter.aks16.isCustCtlBadFlag()) {
         if (custCtrlAllowed) {
             copter.custom_control.set_custom_controller(false);
+            copter.aks16.setFlightMode(false);
             custCtrlAllowed = false;
         }
     }
