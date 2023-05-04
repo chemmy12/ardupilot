@@ -393,10 +393,12 @@ void AKS16::update_encoders() {     // Backend process
 
     if (!seeingMB4) {
         encStatus |= SET_BIT(OTHER_ERROR);
+        check_mks16_reliable();
         Write_MB4();    // Write to logger
         return;
     }
     if (sema == SEMA_NOT_AVAIL) {   // Actually keep old / previous encoder values
+        check_mks16_reliable();
         Write_MB4();
         return;
     }
@@ -415,6 +417,7 @@ void AKS16::update_encoders() {     // Backend process
             recover();
             mb4.mb4_write_param(&mb4.MB4_HOLDBANK,0x00);
             encStatus |= SET_BIT(MB4_TIMEOUT);
+            check_mks16_reliable();
             Write_MB4();    // Write to logger
             sema = SEMA_AVAIL;
             return ;
