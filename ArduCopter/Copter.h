@@ -72,6 +72,12 @@
 
 #include <AP_MB4_AKS16/AKS16.h>  // absolute position encoders
 
+#define SER_BRDCST
+#ifdef SER_BRDCST
+#include "SerBrdcst.h"    // Serial data broadcasting
+#endif
+
+
 // Configuration
 #include "defines.h"
 #include "config.h"
@@ -1027,6 +1033,11 @@ public:
     void failsafe_check();      // failsafe.cpp
 
     AKS16 &getAKS16()      { return aks16; };   // return the AKS16 instance
+
+#ifdef SER_BRDCST
+    ::SerBrdcst SerBrdcst;
+#endif
+
 };
 
 extern Copter copter;

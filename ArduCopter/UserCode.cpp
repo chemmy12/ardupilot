@@ -1,5 +1,7 @@
 #include "Copter.h"
 
+#define SER_BRDCST
+
 #ifdef USERHOOK_INIT
 void Copter::userhook_init()
 {
@@ -24,9 +26,12 @@ void Copter::userhook_FastLoop()
     }
     else
         custCtrlAllowed = true;
-//
-//    if (!copter.aks16.check_mks16_reliable())       // move away of custom control when we have bad encoders
-//        copter.custom_control.set_custom_controller(false);
+
+#ifdef SER_BRDCST
+    int16_t pitch = copter.ahrs.pitch_sensor;     // units in centi-degrees
+    int16_t roll = copter.ahrs.roll_sensor;
+    copter.SerBrdcst.sendData(roll, pitch);
+#endif
 
 }
 #endif
@@ -35,6 +40,13 @@ void Copter::userhook_FastLoop()
 void Copter::userhook_50Hz()
 {
     // put your 50Hz code here
+
+#ifdef SER_BRDCST
+    int16_t r,p;
+    if (copter.SerBrdcst.recvData(r, p))
+        hal.console->printf("Received serial data: r=%f, p=%f\n", r/100.0, p/100.0);
+#endif
+
 }
 #endif
 
