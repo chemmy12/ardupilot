@@ -115,6 +115,8 @@ void AKS16::update()
 
     if (notYetInit) {    // happens only once at boot
         seeingMB4 = init_AKS16();
+        if (!seeingMB4)
+            return;
         createBackProcess();
         notYetInit = false;
         sema = SEMA_AVAIL;
