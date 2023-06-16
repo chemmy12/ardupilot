@@ -27,11 +27,11 @@ void Copter::userhook_FastLoop()
     else
         custCtrlAllowed = true;
 
-#ifdef SER_BRDCST
-    int16_t pitch = copter.ahrs.pitch_sensor;     // units in centi-degrees
-    int16_t roll = copter.ahrs.roll_sensor;
-    copter.SerBrdcst.sendData(roll, pitch);
-#endif
+//#ifdef SER_BRDCST
+//    int16_t pitch = copter.ahrs.pitch_sensor;     // units in centi-degrees
+//    int16_t roll = copter.ahrs.roll_sensor;
+//    copter.SerBrdcst.sendData(roll, pitch);
+//#endif
 
 }
 #endif

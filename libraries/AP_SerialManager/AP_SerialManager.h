@@ -171,6 +171,7 @@ public:
         SerialProtocol_Tramp = 44,
         SerialProtocol_BodyAngles_old = 45,
         SerialProtocol_BodyAngles = 46,
+        SerialProtocol_APD_ESC = 47,
         SerialProtocol_NumProtocols                    // must be the last value
     };
 

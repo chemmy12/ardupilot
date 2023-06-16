@@ -31,7 +31,8 @@ def build(bld):
             'AP_OSD',
             'AC_AutoTune',
             'AP_KDECAN',
-            'AP_MB4_AKS16'
+            'AP_MB4_AKS16',
+            'AP_APD_ESC'
         ],
     )
 

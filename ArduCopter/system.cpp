@@ -190,6 +190,10 @@ void Copter::init_ardupilot()
     copter.aks16.setFlightMode(true);
 #endif
 
+#ifdef APD_ESC
+    apd_esc.init();
+#endif
+
     // set landed flags
     set_land_complete(true);
     set_land_complete_maybe(true);

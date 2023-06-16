@@ -77,6 +77,11 @@
 #include "SerBrdcst.h"    // Serial data broadcasting
 #endif
 
+#define APD_ESC
+#ifdef APD_ESC
+#include <AP_APD_ESC/AP_APD_ESC.h>
+#endif
+
 
 // Configuration
 #include "defines.h"
@@ -1036,6 +1041,10 @@ public:
 
 #ifdef SER_BRDCST
     ::SerBrdcst SerBrdcst;
+#endif
+
+#ifdef APD_ESC
+    AP_APD_ESC  apd_esc;
 #endif
 
 };
