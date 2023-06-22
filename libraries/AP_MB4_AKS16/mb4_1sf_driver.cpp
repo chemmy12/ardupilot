@@ -24,7 +24,7 @@ bool MB4::mb4_init()
     spiDevp = std::move(hal.spi->get_device("extspi"));
 
     if (!spiDevp) {
-        hal.console->printf("mb4_init(): spiDevp is null\n");
+//        hal.console->printf("mb4_init(): spiDevp is null\n");
         return false;
     }
     hal.console->printf("mb4_init(): spiDevp initialized\n");

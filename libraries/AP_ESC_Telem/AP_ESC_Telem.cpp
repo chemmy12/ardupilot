@@ -295,11 +295,18 @@ bool AP_ESC_Telem::get_usage_seconds(uint8_t esc_index, uint32_t& usage_s) const
 // send ESC telemetry messages over MAVLink
 void AP_ESC_Telem::send_esc_telemetry_mavlink(uint8_t mav_chan)
 {
+
+    hal.console->printf("AP_ESC_Telem::send_esc_telemetry_mavlink()\n");
+
 #if HAL_GCS_ENABLED
+
+    hal.console->printf("AP_ESC_Telem::HAL_GCS_ENABLED\n");
+
     if (!_have_data) {
         // we've never had any data
         return;
     }
+//    hal.console->printf("AP_ESC_Telem::We have data\n");
 
     uint32_t now = AP_HAL::millis();
     uint32_t now_us = AP_HAL::micros();
@@ -309,6 +316,8 @@ void AP_ESC_Telem::send_esc_telemetry_mavlink(uint8_t mav_chan)
     const uint8_t num_idx = ESC_TELEM_MAX_ESCS/4;
     for (uint8_t idx = 0; idx < num_idx; idx++) {
         const uint8_t i = (next_idx + idx) % num_idx;
+
+        hal.console->printf("AP_ESC_Telem::for esc #%d\n", idx);
 
         // return if no space in output buffer to send mavlink messages
         if (!HAVE_PAYLOAD_SPACE((mavlink_channel_t)mav_chan, ESC_TELEMETRY_1_TO_4)) {
@@ -412,6 +421,8 @@ void AP_ESC_Telem::update_telem_data(const uint8_t esc_index, const AP_ESC_Telem
     // each element is a primitive type and the timestamp is only updated at the end, thus a caller
     // can only get slightly more up-to-date information that perhaps they were expecting or might
     // read data that has just gone stale - both of these are safe and avoid the overhead of locking
+
+    hal.console->printf("AP_ESC_Telem::update_telem_data\n");
 
     if (esc_index >= ESC_TELEM_MAX_ESCS) {
         return;

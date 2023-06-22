@@ -218,7 +218,7 @@ bool AKS16::init_AKS16() {
 
 
     if (!mb4.mb4_init()) {
-        hal.console->printf("AKS16::init_AKS16(): mb4_init() returned false\n");
+//        hal.console->printf("AKS16::init_AKS16(): mb4_init() returned false\n");
         sema = SEMA_AVAIL;
         return false;
     }

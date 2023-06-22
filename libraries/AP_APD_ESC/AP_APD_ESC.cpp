@@ -51,7 +51,8 @@ void AP_APD_ESC::update() {
 //    hal.console->printf("APD_ESC: uart received %d chars", (int)n);
 
     if (n < MsgSize) {
-        hal.console->printf("APD_ESC: received too few chars - %d bytes; ", (int)n);
+        if (n != 0)
+            hal.console->printf("APD_ESC: received too few chars - %d bytes; ", (int)n);
         return;
     }
 
@@ -71,13 +72,16 @@ void AP_APD_ESC::update() {
                 if (n > MsgSize)
                     memmove(received.bytes, &received.bytes[n-MsgSize], sizeof(MsgSize-4));
                 // valid packet, copy the data we need and reset length
-                decoded.voltage = le16toh(received.packet.voltage) * 1e-2f;
-                decoded.temperature = convert_temperature(le16toh(received.packet.temperature));
-                decoded.current = le16toh(received.packet.bus_current) * (1 / 12.5f);
-                decoded.rpm = le32toh(received.packet.erpm) / pole_count;
-                decoded.power_rating_pct = le16toh(received.packet.motor_duty) * 1e-2f;
+                decoded.voltage = le16toh(received.packet.voltage);
+                decoded.temperature = ((uint8_t)convert_temperature(le16toh(received.packet.temperature))) & 0xff;
+                decoded.current = (uint16_t)(le16toh(received.packet.bus_current) * (1 / 12.5f));
+                decoded.rpm = (uint16_t)(le32toh(received.packet.erpm) / pole_count);
+                decoded.totalCurrent = le16toh(received.packet.motor_duty);
                 len = 0;
-                hal.console->printf("APD_ESC:  received voltage %f chars; ", (float)decoded.voltage);
+                hal.console->printf("APD_ESC:  received voltage %d chars; ", decoded.voltage);
+
+                sendMavlink();
+
                 return;
             }
             else
@@ -88,45 +92,8 @@ void AP_APD_ESC::update() {
     }
     hal.console->printf("APD_ESC: Something went wrong - no data found. ");
 
-//    while (n--) {
-//        uint8_t b = uart->read();
-//        received.bytes[len++] = b;
-//
-//        // check the packet size first
-//        if ((size_t)len >= sizeof(received.packet)) {
-//            gcs().send_text(MAV_SEVERITY_WARNING, "2");
-//            // we have a full packet, check the stop byte
-//            if (received.packet.stop == 65535) {
-//                gcs().send_text(MAV_SEVERITY_WARNING, "3");
-//                // valid stop byte, check the CRC
-//                if (crc_fletcher16(received.bytes, 18) == received.packet.checksum) {
-//                    gcs().send_text(MAV_SEVERITY_WARNING, "4");
-//                    // valid packet, copy the data we need and reset length
-//                    decoded.voltage = le16toh(received.packet.voltage) * 1e-2f;
-//                    decoded.temperature = convert_temperature(le16toh(received.packet.temperature));
-//                    decoded.current = le16toh(received.packet.bus_current) * (1 / 12.5f);
-//                    decoded.rpm = le32toh(received.packet.erpm) / pole_count;
-//                    decoded.power_rating_pct = le16toh(received.packet.motor_duty) * 1e-2f;
-//                    len = 0;
-//                    hal.console->printf("APD_ESC:  received voltage %f chars", (float)decoded.voltage);
-//                } else {
-//                    // we have an invalid packet, shift it back a byte
-//                    shift_buffer();
-//                }
-//            } else {
-//                // invalid stop byte, we've lost sync, shift the packet by 1 byte
-//                shift_buffer();
-//            }
-//
-//        }
-//    }
 }
 
-// shift the decode buffer left by 1 byte, and rewind the progress
-//void AP_APD_ESC::shift_buffer(void) {
-//    memmove(received.bytes, received.bytes + 1, sizeof(received.bytes) - 1);
-//    len--;
-//}
 
 // convert the raw ESC temperature to a useful value (in Kelvin)
 // based on the 1.1 example C code found here https://docs.powerdrives.net/products/hv_pro/uart-telemetry-output
@@ -149,3 +116,19 @@ float AP_APD_ESC::convert_temperature(uint16_t raw) const {
     return temperature;
 }
 
+void AP_APD_ESC::sendMavlink()
+{
+//    mavlink_msg_esc_telemetry_1_to_4_send(mavlink_channel_t chan, const uint8_t *temperature, const uint16_t *voltage, const uint16_t *current, const uint16_t *totalcurrent, const uint16_t *rpm, const uint16_t *count)
+//    mavlink_msg_esc_telemetry_1_to_4_send((mavlink_channel_t) mav_chan, temperature, voltage, current, totalcurrent, rpm, count);
+    const uint8_t temperature[4]  {decoded.temperature, 0, 0, 0};
+    const uint16_t voltage[4] {decoded.voltage, 346, 347, 348};
+    const uint16_t current[4]  {decoded.current, 457, 458, 459};
+    const uint16_t totalcurrent[4] {decoded.totalCurrent, 568, 569, 570};
+    const uint16_t rpm[4] {decoded.rpm, 679, 680, 681};
+    static uint16_t count[4] {0, 790, 791, 792};
+    mavlink_msg_esc_telemetry_1_to_4_send((mavlink_channel_t) 0, temperature, voltage, current, totalcurrent, rpm, count);
+    count[0]++;
+
+    hal.console->printf("APD_ESC: Sent Mavlink message??? count0=%d\n", count[0]);
+
+}

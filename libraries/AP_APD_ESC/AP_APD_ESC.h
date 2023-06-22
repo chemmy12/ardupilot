@@ -12,6 +12,7 @@ public:
     AP_APD_ESC ();
     void init();
     void update();
+    void sendMavlink();
 
     CLASS_NO_COPY(AP_APD_ESC);
 
@@ -24,9 +25,18 @@ public:
         uint8_t power_rating_pct;
     };
 
-    const telem &get_telem(void) {
-        return decoded;
-    }
+    struct esc_mav_telem {
+        uint16_t voltage;
+        uint16_t current;
+        uint16_t totalCurrent;
+        uint8_t  temperature; // kelvin
+        uint16_t rpm;
+        uint16_t count;
+    };
+
+//    const telem &get_telem(void) {
+//        return decoded;
+//    }
 
     static AP_APD_ESC *get_singleton(void) {
         return _singleton;
@@ -59,7 +69,7 @@ private:
 
     uint8_t len;
 
-    struct telem decoded;
+    struct esc_mav_telem decoded;
 
     float pole_count = 5*17.6;
 

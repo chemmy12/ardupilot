@@ -1425,12 +1425,18 @@ void AP_BLHeli::init(uint32_t mask, AP_HAL::RCOutput::output_mode otype)
  */
 void AP_BLHeli::read_telemetry_packet(void)
 {
+
+    hal.console->printf("AP_BLHeli::read_telemetry_packet; ");
 #if HAL_WITH_ESC_TELEM
+
+    hal.console->printf("AP_BLHeli::Enters1; ");
+
     uint8_t buf[telem_packet_size];
     if (telem_uart->read(buf, telem_packet_size) < telem_packet_size) {
         // short read, we should have 10 bytes ready when this function is called
         return;
     }
+    hal.console->printf("AP_BLHeli::Enters2; ");
 
     // calculate crc
     uint8_t crc = 0;
@@ -1525,6 +1531,7 @@ void AP_BLHeli::log_bidir_telemetry(void)
   update BLHeli telemetry handling
   This is called on push() in SRV_Channels
  */
+    // This function is being called at high freq from ...
 void AP_BLHeli::update_telemetry(void)
 {
 #ifdef HAL_WITH_BIDIR_DSHOT
@@ -1547,6 +1554,7 @@ void AP_BLHeli::update_telemetry(void)
         telem_uart->begin(115200);
         telem_uart_started = true;
     }
+
 
     uint32_t nbytes = telem_uart->available();
 
