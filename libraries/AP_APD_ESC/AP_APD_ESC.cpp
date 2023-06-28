@@ -25,12 +25,12 @@ AP_APD_ESC::AP_APD_ESC(void): uart(nullptr)
 
 void AP_APD_ESC::init() {
 
-    gcs().send_text(MAV_SEVERITY_WARNING, "a");
+//    gcs().send_text(MAV_SEVERITY_WARNING, "a");
     initialised = true;
 
     AP_SerialManager *serial_manager = AP_SerialManager::get_singleton();
     if (serial_manager) {
-        gcs().send_text(MAV_SEVERITY_WARNING, "b");
+//        gcs().send_text(MAV_SEVERITY_WARNING, "b");
         uart = serial_manager->find_serial(AP_SerialManager::SerialProtocol_APD_ESC,0);
         if (uart) {
             uart->set_flow_control(AP_HAL::UARTDriver::FLOW_CONTROL_DISABLE);
@@ -39,16 +39,23 @@ void AP_APD_ESC::init() {
     }
 }
 
-#define MsgSize sizeof(received.packet)
+
+extern void printn(uint8_t *p, int n, const char* h);
 
 void AP_APD_ESC::update() {
+    union {
+        uint8_t rdata[MsgSize * 2];
+        RPacket packet;
+    };
+
+
     if (uart == nullptr) {
         hal.console->printf("APD_ESC: uart is not initialized; ");
         return;
     }
 
     uint32_t n = uart->available();
-//    hal.console->printf("APD_ESC: uart received %d chars", (int)n);
+    hal.console->printf("APD_ESC: uart received %d chars", (int)n);
 
     if (n < MsgSize) {
         if (n != 0)
@@ -61,39 +68,50 @@ void AP_APD_ESC::update() {
         n--;
     }
 
-    if (uart->read(received.bytes, n) == -1) {
-        hal.console->printf("APD_ESC: Error reading %d bytes; ", (int)n);
-        return;
-    }
+//    hal.console->printf("APD_ESC: MsgSize=%d, n=%d\n", MsgSize, (int)n);
+
+    for (int i = 0; i < n; i++)      // copy received data to buffer
+        rdata[i] = uart->read();
+
+//    printn(rdata, n, "dump recv buf:");
 
     while (n >= MsgSize) {
-        if (received.bytes[n-1] == 0xff && received.bytes[n-2] == 0xff) {     // found the end of packet
-            if (crc_fletcher16(&received.bytes[n-MsgSize], 18) == received.bytes[n-4] + received.bytes[n-3] * 255) {   // checksum pass assuming little endian TBTested
-                if (n > MsgSize)
-                    memmove(received.bytes, &received.bytes[n-MsgSize], sizeof(MsgSize-4));
+        if (rdata[n-1] == 0xff && rdata[n-2] == 0xff) {     // found the end of packet
+            if (n > MsgSize) {
+                memmove(&packet, &rdata[n - MsgSize], MsgSize);
+                n = 0;  // don't iterate any more.... for now. need to be improved
+            }
+//            printn(rdata, 22, "dump final buf:");
+            if (crc_fletcher16((const uint8_t *)&packet, 18) == packet.checksum) {   // checksum pass assuming little endian TBTested
                 // valid packet, copy the data we need and reset length
-                decoded.voltage = le16toh(received.packet.voltage);
-                decoded.temperature = ((uint8_t)convert_temperature(le16toh(received.packet.temperature))) & 0xff;
-                decoded.current = (uint16_t)(le16toh(received.packet.bus_current) * (1 / 12.5f));
-                decoded.rpm = (uint16_t)(le32toh(received.packet.erpm) / pole_count);
-                decoded.totalCurrent = le16toh(received.packet.motor_duty);
-                len = 0;
-                hal.console->printf("APD_ESC:  received voltage %d chars; ", decoded.voltage);
+                decoded.voltage = le16toh(packet.voltage);
+                decoded.temperature = (uint8_t)(convert_temperature(le16toh(packet.temperature)) - 273);
+                decoded.current = (uint16_t)(le16toh(packet.bus_current) * (1 / 12.5f));
+                decoded.rpm = (uint16_t)(le32toh(packet.erpm) / pole_count);
+                decoded.totalCurrent = le16toh(packet.motor_duty);
+
+//                hal.console->printf("APD_ESC:  received voltage %d volt; ", decoded.voltage);
 
                 sendMavlink();
 
+                while(uart->available() > 0)   // clean buffer if  needed.
+                    uart->read();
+
                 return;
             }
-            else
-                hal.console->printf("APD_ESC: Bad CRC; ");
+            else {
+                hal.console->printf("APD_ESC: Bad CRC; fletch=%04X, crc=%04X\n", crc_fletcher16((const uint8_t *)&packet, 18), packet.checksum);
+                return;
+            }
         }
-        else
+        else {
             n--;
+            hal.console->printf("-");
+        }
     }
     hal.console->printf("APD_ESC: Something went wrong - no data found. ");
 
 }
-
 
 // convert the raw ESC temperature to a useful value (in Kelvin)
 // based on the 1.1 example C code found here https://docs.powerdrives.net/products/hv_pro/uart-telemetry-output
@@ -121,14 +139,22 @@ void AP_APD_ESC::sendMavlink()
 //    mavlink_msg_esc_telemetry_1_to_4_send(mavlink_channel_t chan, const uint8_t *temperature, const uint16_t *voltage, const uint16_t *current, const uint16_t *totalcurrent, const uint16_t *rpm, const uint16_t *count)
 //    mavlink_msg_esc_telemetry_1_to_4_send((mavlink_channel_t) mav_chan, temperature, voltage, current, totalcurrent, rpm, count);
     const uint8_t temperature[4]  {decoded.temperature, 0, 0, 0};
-    const uint16_t voltage[4] {decoded.voltage, 346, 347, 348};
-    const uint16_t current[4]  {decoded.current, 457, 458, 459};
-    const uint16_t totalcurrent[4] {decoded.totalCurrent, 568, 569, 570};
-    const uint16_t rpm[4] {decoded.rpm, 679, 680, 681};
-    static uint16_t count[4] {0, 790, 791, 792};
+    const uint16_t voltage[4] {decoded.voltage, 0,0,0};
+    const uint16_t current[4]  {decoded.current, 0,0,0};
+    const uint16_t totalcurrent[4] {decoded.totalCurrent, 0,0,0};
+    const uint16_t rpm[4] {decoded.rpm, 0,0,0};
+    static uint16_t count[4] {0, 0,0,0};
     mavlink_msg_esc_telemetry_1_to_4_send((mavlink_channel_t) 0, temperature, voltage, current, totalcurrent, rpm, count);
     count[0]++;
 
     hal.console->printf("APD_ESC: Sent Mavlink message??? count0=%d\n", count[0]);
 
+}
+
+void printn(uint8_t *p, int n, const char* h)
+{
+    hal.console->printf("APD_ESC:%s ", h);
+    for (int i = 0; i < n; i++)
+        hal.console->printf("%d(%02X) ", i, (unsigned int)(*p++));
+    hal.console->printf("\n");
 }

@@ -16,14 +16,14 @@ public:
 
     CLASS_NO_COPY(AP_APD_ESC);
 
-    struct telem {
-        uint32_t error_count;
-        float voltage;
-        float current;
-        float temperature; // kelvin
-        int32_t rpm;
-        uint8_t power_rating_pct;
-    };
+//    struct telem {
+//        uint32_t error_count;
+//        float voltage;
+//        float current;
+//        float temperature; // kelvin
+//        int32_t rpm;
+//        uint8_t power_rating_pct;
+//    };
 
     struct esc_mav_telem {
         uint16_t voltage;
@@ -33,6 +33,25 @@ public:
         uint16_t rpm;
         uint16_t count;
     };
+
+    struct RPacket {
+        uint16_t voltage;
+        uint16_t temperature;
+        int16_t bus_current;
+        uint16_t reserved0;
+        uint32_t erpm;
+        uint16_t input_duty;
+        uint16_t motor_duty;
+        uint16_t reserved1;
+        uint16_t checksum; // 16 bit fletcher checksum
+        uint16_t stop; // should always be 65535 on a valid packet
+    } ;
+
+//#define MsgSize  sizeof(RPacket)
+#define MsgSize 22
+
+
+
 
 //    const telem &get_telem(void) {
 //        return decoded;
@@ -50,24 +69,7 @@ private:
 
     AP_HAL::UARTDriver *uart;
 
-    union {
-        struct {
-            uint16_t voltage;
-            uint16_t temperature;
-            int16_t bus_current;
-            uint16_t reserved0;
-            uint32_t erpm;
-            uint16_t input_duty;
-            uint16_t motor_duty;
-            uint16_t reserved1;
-            uint16_t checksum; // 16 bit fletcher checksum
-            uint16_t stop; // should always be 65535 on a valid packet
-        } packet;
-        uint8_t bytes[22*2];
-    } received;
 //    static_assert(sizeof(received.packet) == sizeof(received.bytes), "The packet must be the same size as the raw buffer");
-
-    uint8_t len;
 
     struct esc_mav_telem decoded;
 
