@@ -193,6 +193,9 @@ void Copter::init_ardupilot()
 #ifdef APD_ESC
     apd_esc.init();
 #endif
+#ifdef SER_BRDCST
+    SerBrdcst.init();
+#endif
 
     // set landed flags
     set_land_complete(true);

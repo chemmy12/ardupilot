@@ -731,6 +731,41 @@ const AP_Param::Info Copter::var_info[] = {
     GOBJECT(custom_control, "CC", AC_CustomControl),
 #endif
 
+
+#ifdef ANGLE_LIMITS
+        // @Param: ANGLE_LIMITS_HIGH
+        // @DisplayName: Angle Limits high
+        // @Description: Angle Limits high
+        // @Range: 0 45
+        // @User: Advanced
+    GSCALAR(ang_lim_high, "Angle_Lim_high", DEFAULT_ANGLE_LIMITS_HIGH),
+
+        // @Param: ANGLE_LIMITS_LOW
+        // @DisplayName: Angle Limits low
+        // @Description: Angle Limits low
+        // @Range: -45 20
+        // @User: Advanced
+    GSCALAR(ang_lim_low, "Angle_Lim_low", DEFAULT_ANGLE_LIMITS_LOW),
+
+        // @Param: ANGLE_LIMITS_DIR
+        // @DisplayName: Angle Limits dir
+        // @Description: Angle Limits dir
+        // @Range: -360 360
+        // @User: Advanced
+    GSCALAR(ang_lim_dir, "Angle_Lim_dir", DEFAULT_ANGLE_LIMITS_DIR),
+
+        // @Param: ANGLE_LIMITS_BAND
+        // @DisplayName: Angle Limits band
+        // @Description: Angle Limits band
+        // @Range: 0 120
+        // @User: Advanced
+    GSCALAR(ang_lim_band, "Angle_Lim_band", DEFAULT_ANGLE_LIMITS_BAND),
+
+
+#endif
+
+
+
     // @Group:
     // @Path: Parameters.cpp
     GOBJECT(g2, "",  ParametersG2),

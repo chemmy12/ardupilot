@@ -3,7 +3,7 @@
 //
 
 #include "SerBrdcst.h"
-
+#include "Copter.h"
 
 extern const AP_HAL::HAL &hal;
 
@@ -30,12 +30,28 @@ bool SerBrdcst::init()
     return true;
 }
 
+void SerBrdcst::recvUpdate()
+{
+    int16_t r,p;
+    if (recvData(r, p))
+        hal.console->printf("SerBrdcst: Received r=%f, p=%f\n", r/100.0, p/100.0);
+}
+
+void SerBrdcst::sendUpdate()
+{
+    assert(1);
+//    int16_t pitch = copter.ahrs.pitch_sensor;     // units in centi-degrees
+//    int16_t roll = copter.ahrs.roll_sensor;
+//    sendData(roll, pitch);
+}
+
+
 // read the from the sensor
 bool SerBrdcst::sendData(int16_t roll, int16_t pitch)
 {
     if (_uart == nullptr) {
         hal.console->printf("SerBrdcst::sendData: _uart is nullptr\n");
-        init();
+//        init();
         return false;
     }
 
@@ -62,10 +78,11 @@ bool SerBrdcst::sendData(int16_t roll, int16_t pitch)
 
 bool SerBrdcst::recvData(int16_t &roll, int16_t &pitch)
 {
+    roll = pitch = 0;
 
     if (_uart == nullptr) {
         hal.console->printf("SerBrdcst::recvData() _uart is nullptr\n");
-        init();
+//        init();
         return false;
     }
 
@@ -77,8 +94,8 @@ bool SerBrdcst::recvData(int16_t &roll, int16_t &pitch)
 
     // if not enough data - ignore until next time
     if (nbytes < sizeof(dataBlock)) {
-        if (nbytes > 0)
-            hal.console->printf("SerBrdcst::recvData: not enough data received. nbytes=%lu\n", nbytes);
+//        if (nbytes > 0)
+//            hal.console->printf("SerBrdcst received only %lu bytes\n", nbytes);
         return false;
     }
     uint8_t buf[sizeof(dataBlock)*2];

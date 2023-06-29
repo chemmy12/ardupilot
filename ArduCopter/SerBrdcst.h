@@ -35,6 +35,8 @@ public:
     void update() {}
     bool sendData(int16_t roll, int16_t pitch);
     bool recvData(int16_t &roll, int16_t &pitch);
+    void recvUpdate();
+    void sendUpdate();
 
 private:
     ComState comState;

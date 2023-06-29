@@ -70,22 +70,24 @@
 #include <AP_ADSB/AP_ADSB.h>                // ADS-B RF based collision avoidance module library
 #include <AP_Proximity/AP_Proximity.h>      // ArduPilot proximity sensor library
 
+
+// Configuration
+#include "defines.h"
+#include "config.h"
+
 #include <AP_MB4_AKS16/AKS16.h>  // absolute position encoders
 
-#define SER_BRDCST
+
 #ifdef SER_BRDCST
 #include "SerBrdcst.h"    // Serial data broadcasting
 #endif
 
-#define APD_ESC
+
 #ifdef APD_ESC
 #include <AP_APD_ESC/AP_APD_ESC.h>
 #endif
 
 
-// Configuration
-#include "defines.h"
-#include "config.h"
 
 #if FRAME_CONFIG == HELI_FRAME
     #define AC_AttitudeControl_t AC_AttitudeControl_Heli

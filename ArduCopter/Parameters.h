@@ -379,7 +379,11 @@ public:
 
         k_param_vehicle = 257, // vehicle common block of parameters
 
-        k_param_aks16,
+        k_param_aks16 = 258,
+        k_param_ang_lim_high = 260,
+        k_param_ang_lim_low,
+        k_param_ang_lim_dir,
+        k_param_ang_lim_band,
 
         // the k_param_* space is 9-bits in size
         // 511: reserved
@@ -473,6 +477,13 @@ public:
 #if MODE_ACRO_ENABLED == ENABLED
     // Acro parameters
     AP_Int8                 acro_trainer;
+#endif
+
+#ifdef ANGLE_LIMITS
+    AP_Float                ang_lim_high;
+    AP_Float                ang_lim_low;
+    AP_Float                ang_lim_dir;
+    AP_Float                ang_lim_band;
 #endif
 
     // Note: keep initializers here in the same order as they are declared

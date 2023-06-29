@@ -424,11 +424,25 @@ void Mode::get_pilot_desired_lean_angles(float &roll_out_cd, float &pitch_out_cd
     //transform pilot's normalised roll or pitch stick input into a roll and pitch euler angle command
     float roll_out_deg;
     float pitch_out_deg;
-    rc_input_to_roll_pitch(channel_roll->get_control_in()*(1.0/ROLL_PITCH_YAW_INPUT_MAX), channel_pitch->get_control_in()*(1.0/ROLL_PITCH_YAW_INPUT_MAX), angle_max_cd * 0.01,  angle_limit_cd * 0.01, roll_out_deg, pitch_out_deg);
 
+#ifdef ANGLE_LIMITS
+    Vector2f thrust;
+    float thrust_angle;
+    float angle_limit;
+    thrust.x = channel_pitch->get_control_in();
+    thrust.y = channel_roll->get_control_in();
+    thrust_angle = Vector2f(thrust.x, thrust.y).angle();
+    angle_limit = g.ang_lim_high - (g.ang_lim_high-g.ang_lim_low)*exp( -0.5*pow((thrust_angle-g.ang_lim_dir)/(g.ang_lim_band),2));
+    rc_input_to_roll_pitch(channel_roll->get_control_in()*(1.0/ROLL_PITCH_YAW_INPUT_MAX), channel_pitch->get_control_in()*(1.0/ROLL_PITCH_YAW_INPUT_MAX), angle_limit,  angle_limit, roll_out_deg, pitch_out_deg);
+#else
+    rc_input_to_roll_pitch(channel_roll->get_control_in()*(1.0/ROLL_PITCH_YAW_INPUT_MAX), channel_pitch->get_control_in()*(1.0/ROLL_PITCH_YAW_INPUT_MAX), angle_max_cd * 0.01,  angle_limit_cd * 0.01, roll_out_deg, pitch_out_deg);
+#endif
     // Convert to centi-degrees
     roll_out_cd = roll_out_deg * 100.0;
     pitch_out_cd = pitch_out_deg * 100.0;
+#ifdef ANGLE_LIMITS
+    hal.console->printf("get_pilot_desired_lean_angles: thrust ang=%f, ang limit=%f, out roll=%f, pitch out=%f\n", thrust_angle, angle_limit, roll_out_deg, pitch_out_deg);
+#endif
 }
 
 // transform pilot's roll or pitch input into a desired velocity

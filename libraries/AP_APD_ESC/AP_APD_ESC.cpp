@@ -85,10 +85,12 @@ void AP_APD_ESC::update() {
             if (crc_fletcher16((const uint8_t *)&packet, 18) == packet.checksum) {   // checksum pass assuming little endian TBTested
                 // valid packet, copy the data we need and reset length
                 decoded.voltage = le16toh(packet.voltage);
-                decoded.temperature = (uint8_t)(convert_temperature(le16toh(packet.temperature)) - 273);
+                decoded.temperature = (uint8_t)convert_temperature(le16toh(packet.temperature));
                 decoded.current = (uint16_t)(le16toh(packet.bus_current) * (1 / 12.5f));
                 decoded.rpm = (uint16_t)(le32toh(packet.erpm) / pole_count);
                 decoded.totalCurrent = le16toh(packet.motor_duty);
+
+                decoded.status = le16toh(packet.reserved1) & 0xff;
 
 //                hal.console->printf("APD_ESC:  received voltage %d volt; ", decoded.voltage);
 
@@ -128,7 +130,7 @@ float AP_APD_ESC::convert_temperature(uint16_t raw) const {
     temperature = logf(temperature);                        // ln(R/Ro)
     temperature /= b_coefficent;                            // 1/B * ln(R/Ro)
     temperature += 1 / C_TO_KELVIN(nominal_temperature); // + (1/To)
-    temperature = 1 / temperature;                          // invert
+    temperature = 1 / temperature - 273.15;                          // invert .... and convert to Celsius
 
     // the example code rejected anything below 0C, or above 200C, the 200C clamp makes some sense, the below 0C is harder to accept
     return temperature;
@@ -138,7 +140,7 @@ void AP_APD_ESC::sendMavlink()
 {
 //    mavlink_msg_esc_telemetry_1_to_4_send(mavlink_channel_t chan, const uint8_t *temperature, const uint16_t *voltage, const uint16_t *current, const uint16_t *totalcurrent, const uint16_t *rpm, const uint16_t *count)
 //    mavlink_msg_esc_telemetry_1_to_4_send((mavlink_channel_t) mav_chan, temperature, voltage, current, totalcurrent, rpm, count);
-    const uint8_t temperature[4]  {decoded.temperature, 0, 0, 0};
+    const uint8_t temperature[4]  {decoded.temperature, decoded.status, 0, 0};
     const uint16_t voltage[4] {decoded.voltage, 0,0,0};
     const uint16_t current[4]  {decoded.current, 0,0,0};
     const uint16_t totalcurrent[4] {decoded.totalCurrent, 0,0,0};

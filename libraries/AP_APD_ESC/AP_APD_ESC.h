@@ -32,6 +32,7 @@ public:
         uint8_t  temperature; // kelvin
         uint16_t rpm;
         uint16_t count;
+        uint8_t  status;
     };
 
     struct RPacket {
