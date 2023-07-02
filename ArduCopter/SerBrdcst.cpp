@@ -34,7 +34,7 @@ void SerBrdcst::recvUpdate()
 {
     int16_t r,p;
     if (recvData(r, p))
-        hal.console->printf("SerBrdcst: Received r=%f, p=%f\n", r/100.0, p/100.0);
+        /* hal.console->printf("SerBrdcst: Received r=%f, p=%f\n", r/100.0, p/100.0) */{} ;
 }
 
 void SerBrdcst::sendUpdate()
