@@ -12,7 +12,7 @@ public:
     AP_APD_ESC ();
     void init();
     void update();
-    void sendMavlink();
+    void sendMavlink(bool newData);
 
     CLASS_NO_COPY(AP_APD_ESC);
 
@@ -77,6 +77,16 @@ private:
     float pole_count = 5*17.6;
 
     float convert_temperature(uint16_t raw) const;
-    void shift_buffer(void);
+
+    uint32_t _now;
+    uint32_t _lastTime;
+
+    // Mavlink data
+    uint8_t _temperature[4] {0, 0, 0, 0};
+    uint16_t _voltage[4] {0, 0, 0, 0};
+    uint16_t _current[4]  {0, 0, 0, 0};
+    uint16_t _totalcurrent[4] {0, 0, 0, 0};
+    uint16_t _rpm[4] {0, 0, 0, 0};
+
 };
 

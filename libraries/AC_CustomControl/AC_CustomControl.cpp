@@ -119,6 +119,7 @@ void AC_CustomControl::set_custom_controller(bool enabled)
     log_switch();
 
 
+    int keepCC = _custom_controller_active;
 
     _custom_controller_active = false;
 
@@ -147,7 +148,8 @@ void AC_CustomControl::set_custom_controller(bool enabled)
 
     // reset main controller
     if (!enabled) {
-        gcs().send_text(MAV_SEVERITY_INFO, "Custom controller is OFF");
+        if (keepCC)
+            gcs().send_text(MAV_SEVERITY_INFO, "Custom controller is OFF");
         // don't reset if the empty backend is selected
         if (_controller_type > CustomControlType::CONT_EMPTY) {
             reset_main_att_controller();

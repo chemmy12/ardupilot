@@ -443,14 +443,14 @@ void Mode::get_pilot_desired_lean_angles(float &roll_out_cd, float &pitch_out_cd
     // Convert to centi-degrees
     roll_out_cd = roll_out_deg * 100.0;
     pitch_out_cd = pitch_out_deg * 100.0;
-#ifdef ANGLE_LIMITS
-    static int slow=0;
-    if (slow++ % 20 == 0) {
-        hal.console->printf("get_pilot_desired_lean_angles params: g.ang_lim_low=%f, g.ang_lim_high=%f, g.ang_lim_dir=%f, g.ang_lim_band=%f\n",
-                            (float)g.ang_lim_low, (float)g.ang_lim_high, (float)g.ang_lim_dir, (float)g.ang_lim_band);
-        hal.console->printf("get_pilot_desired_lean_angles: thrust ang=%f, ang limit=%f, out roll=%f, pitch out=%f\n", thrust_angle, angle_limit, roll_out_deg, pitch_out_deg);
-    }
-#endif
+//#ifdef ANGLE_LIMITS
+//    static int slow=0;
+//    if (slow++ % 20 == 0) {
+//        hal.console->printf("get_pilot_desired_lean_angles params: g.ang_lim_low=%f, g.ang_lim_high=%f, g.ang_lim_dir=%f, g.ang_lim_band=%f\n",
+//                            (float)g.ang_lim_low, (float)g.ang_lim_high, (float)g.ang_lim_dir, (float)g.ang_lim_band);
+//        hal.console->printf("get_pilot_desired_lean_angles: thrust ang=%f, ang limit=%f, out roll=%f, pitch out=%f\n", thrust_angle, angle_limit, roll_out_deg, pitch_out_deg);
+//    }
+//#endif
 }
 
 // transform pilot's roll or pitch input into a desired velocity

@@ -36,6 +36,8 @@ void AP_APD_ESC::init() {
             uart->set_flow_control(AP_HAL::UARTDriver::FLOW_CONTROL_DISABLE);
             uart->begin(AP::serialmanager().find_baudrate(AP_SerialManager::SerialProtocol_APD_ESC, 0));
         }
+        else
+            hal.console->printf("APD_ESC::init(): uart is not initialized;\n");
     }
 }
 
@@ -50,16 +52,17 @@ void AP_APD_ESC::update() {
 
 
     if (uart == nullptr) {
-        hal.console->printf("APD_ESC: uart is not initialized; ");
+//        hal.console->printf("APD_ESC: uart is not initialized; ");
         return;
     }
 
     uint32_t n = uart->available();
-    hal.console->printf("APD_ESC: uart received %d chars", (int)n);
+//    hal.console->printf("APD_ESC: uart received %d chars", (int)n);
 
     if (n < MsgSize) {
-        if (n != 0)
-            hal.console->printf("APD_ESC: received too few chars - %d bytes; ", (int)n);
+//        if (n != 0)
+//            hal.console->printf("APD_ESC: received too few chars - %d bytes; ", (int)n);
+        sendMavlink(false);
         return;
     }
 
@@ -94,7 +97,7 @@ void AP_APD_ESC::update() {
 
 //                hal.console->printf("APD_ESC:  received voltage %d volt; ", decoded.voltage);
 
-                sendMavlink();
+                sendMavlink(true);
 
                 while(uart->available() > 0)   // clean buffer if  needed.
                     uart->read();
@@ -102,7 +105,8 @@ void AP_APD_ESC::update() {
                 return;
             }
             else {
-                hal.console->printf("APD_ESC: Bad CRC; fletch=%04X, crc=%04X\n", crc_fletcher16((const uint8_t *)&packet, 18), packet.checksum);
+//                hal.console->printf("APD_ESC: Bad CRC; fletch=%04X, crc=%04X\n", crc_fletcher16((const uint8_t *)&packet, 18), packet.checksum);
+                sendMavlink(false);
                 return;
             }
         }
@@ -111,7 +115,8 @@ void AP_APD_ESC::update() {
             hal.console->printf("-");
         }
     }
-    hal.console->printf("APD_ESC: Something went wrong - no data found. ");
+    sendMavlink(false);
+//    hal.console->printf("APD_ESC: Something went wrong - no data found. ");
 
 }
 
@@ -136,21 +141,39 @@ float AP_APD_ESC::convert_temperature(uint16_t raw) const {
     return temperature;
 }
 
-void AP_APD_ESC::sendMavlink()
+#define DATA_RESET_MS   500
+
+void AP_APD_ESC::sendMavlink(bool newData)
 {
+    static uint16_t counter = 0;
+
+    _now = AP_HAL::millis();
+
+    if (!newData && _now - _lastTime > DATA_RESET_MS) {
+        _temperature[0] = 0;
+        _voltage[0] = 0;
+        _current[0] = 0;
+        _totalcurrent[0] = 0;
+        _rpm[0] = 0;
+    }
+    else {
+        _temperature[0] = decoded.temperature;
+        _temperature[1] = decoded.status;
+        _voltage[0] = decoded.voltage;
+        _current[0] = decoded.current;
+        _totalcurrent[0] = decoded.totalCurrent;
+        _rpm[0] = decoded.rpm;
+
+        if (newData)
+            _lastTime = _now;
+    }
+    const uint16_t count[4] {counter, counter, counter, counter++};
+
 //    mavlink_msg_esc_telemetry_1_to_4_send(mavlink_channel_t chan, const uint8_t *temperature, const uint16_t *voltage, const uint16_t *current, const uint16_t *totalcurrent, const uint16_t *rpm, const uint16_t *count)
 //    mavlink_msg_esc_telemetry_1_to_4_send((mavlink_channel_t) mav_chan, temperature, voltage, current, totalcurrent, rpm, count);
-    const uint8_t temperature[4]  {decoded.temperature, decoded.status, 0, 0};
-    const uint16_t voltage[4] {decoded.voltage, 0,0,0};
-    const uint16_t current[4]  {decoded.current, 0,0,0};
-    const uint16_t totalcurrent[4] {decoded.totalCurrent, 0,0,0};
-    const uint16_t rpm[4] {decoded.rpm, 0,0,0};
-    static uint16_t count[4] {0, 0,0,0};
-    mavlink_msg_esc_telemetry_1_to_4_send((mavlink_channel_t) 0, temperature, voltage, current, totalcurrent, rpm, count);
-    count[0]++;
+    mavlink_msg_esc_telemetry_1_to_4_send((mavlink_channel_t) 1, _temperature, _voltage, _current, _totalcurrent, _rpm, count);
 
-    hal.console->printf("APD_ESC: Sent Mavlink message??? count0=%d\n", count[0]);
-
+//    hal.console->printf("APD_ESC: Sent Mavlink message??? count0=%d\n", count[0]);
 }
 
 void printn(uint8_t *p, int n, const char* h)
@@ -160,3 +183,4 @@ void printn(uint8_t *p, int n, const char* h)
         hal.console->printf("%d(%02X) ", i, (unsigned int)(*p++));
     hal.console->printf("\n");
 }
+

@@ -127,11 +127,11 @@ void AKS16::update()
     if (!test()) {
         seeingMB4 = false;
         if (!init_AKS16()) {
-            hal.console->printf("AKS16::update(): could not init() MB4.\n");
+//            hal.console->printf("AKS16::update(): could not init() MB4.\n");
             return;
         }
         else {
-            hal.console->printf("AKS16::update(): MB4 alive test failed but recovery succeeded.\n");
+//            hal.console->printf("AKS16::update(): MB4 alive test failed but recovery succeeded.\n");
             seeingMB4 = true;
             return;
         }
@@ -160,10 +160,10 @@ bool AKS16::test() {
     uint8_t res = mb4.mb4_read_param(&mb4.MB4_VERSION);
 //    hal.console->printf("AKS16: MB4 version %d, revision #%x\n", res, (unsigned int)mb4.mb4_read_param(&mb4.MB4_REVISION));
     if (res != 0x84) {
-        if (res == 0)
-            hal.console->printf("AKS16: MB4 not found\n");
-        else
-            hal.console->printf("AKS16: MB4 version bad = #%x\n", (unsigned int)res);
+//        if (res == 0)
+//            hal.console->printf("AKS16: MB4 not found\n");
+//        else
+//            hal.console->printf("AKS16: MB4 version bad = #%x\n", (unsigned int)res);
         encStatus |= SET_BIT(BAD_VER_REV);
         Write_MB4();    // Write to logger
         sema = SEMA_AVAIL;
@@ -171,7 +171,7 @@ bool AKS16::test() {
     }
 
     if (((res = mb4.mb4_read_param(&mb4.MB4_CFGCH1)) & 0x01) != 1) {
-        hal.console->printf("AKS16: MB4_CFGCH1 bad = #%x\n", (unsigned int)res);
+//        hal.console->printf("AKS16: MB4_CFGCH1 bad = #%x\n", (unsigned int)res);
         encStatus |= SET_BIT(BAD_VER_REV);
         Write_MB4();    // Write to logger
         sema = SEMA_AVAIL;
@@ -179,7 +179,7 @@ bool AKS16::test() {
     }
 
     if ((res = mb4.mb4_read_param(&mb4.MB4_SLAVELOC5)) != 1) {
-        hal.console->printf("AKS16: MB4_SLAVELOC5 bad = #%x\n", (unsigned int)res);
+//        hal.console->printf("AKS16: MB4_SLAVELOC5 bad = #%x\n", (unsigned int)res);
         encStatus |= SET_BIT(SLAVE_LOC);
         Write_MB4();    // Write to logger
         sema = SEMA_AVAIL;
@@ -188,7 +188,7 @@ bool AKS16::test() {
     res = mb4.mb4_read_param(&mb4.MB4_ENSCD1);
     uint8_t res2 = mb4.mb4_read_param(&mb4.MB4_ENSCD5);
     if (res != 1 || res2 != 1) {
-        hal.console->printf("AKS16: MB4_ENSCD1 bad = #%x, MB4_ENSCD5 bad = #%x\n", (unsigned int)res, res2);
+//        hal.console->printf("AKS16: MB4_ENSCD1 bad = #%x, MB4_ENSCD5 bad = #%x\n", (unsigned int)res, res2);
         encStatus |= SET_BIT(ENSCD_ERR);
         Write_MB4();    // Write to logger
         sema = SEMA_AVAIL;
@@ -198,7 +198,7 @@ bool AKS16::test() {
     uint8_t StatusInformationF1 = mb4.mb4_read_param(&mb4.MB4_SVALID1);
     uint8_t StatusInformationF5 = mb4.mb4_read_param(&mb4.MB4_SVALID5);
     if ((StatusInformationF1 & StatusInformationF5 & 0x01) != 0x01) {
-        hal.console->printf("AKS16: SVALID1,5 bad F1 = #%x, F5 = #%x\n", (unsigned int)StatusInformationF1, StatusInformationF5);
+//        hal.console->printf("AKS16: SVALID1,5 bad F1 = #%x, F5 = #%x\n", (unsigned int)StatusInformationF1, StatusInformationF5);
         encStatus |= SET_BIT(SVALID_ERR);
         Write_MB4();    // Write to logger
         sema = SEMA_AVAIL;
@@ -454,7 +454,7 @@ void AKS16::update_encoders() {     // Backend process
         else {  //If Status ok and SVALID flag is set, read single-cycle data
             encData1 = mb4.mb4_read_param(&mb4.MB4_SCDATA1)>>6; //encData1
             encData2 = mb4.mb4_read_param(&mb4.MB4_SCDATA5)>>6; //encData2
-            hal.console->printf(".");
+//            hal.console->printf(".");
 //            hal.console->printf("Reading 1,2: %X, %X\n", (int)encData1 , (int)encData2);
         }
 
@@ -466,7 +466,7 @@ void AKS16::update_encoders() {     // Backend process
         if (!StatusInformationF0_3)
             encStatus |= SET_BIT(AGSERR);
 
-        hal.console->printf("e");
+//        hal.console->printf("e");
         recover();
     }
     mb4.mb4_write_param(&mb4.MB4_HOLDBANK,0x00);
