@@ -412,7 +412,7 @@ void Copter::notify_flight_mode() {
 
 #define BODY_CUSTOM_EMMO
 #ifdef BODY_CUSTOM_EMMO
-#define CTRL_MAX_STEP   0.05
+#define CTRL_MAX_STEP   0.20
 // calculates limited angle step
 inline float getAng(float prev, float trgt) {
     if (trgt > prev)
@@ -458,8 +458,8 @@ void Mode::get_pilot_desired_lean_angles(float &roll_out_cd, float &pitch_out_cd
     if (!copter.custom_control.is_safe_to_run()) {    // we are at custom control mode
         int16_t r,p;
         if (copter.SerBrdcst.getRPS(r, p)) {
-            roll_out_deg += r * 100.0;
-            pitch_out_deg += p * 100.0;
+            roll_out_deg += r / 100.0;
+            pitch_out_deg += p / 100.0;
         }
     }
 
