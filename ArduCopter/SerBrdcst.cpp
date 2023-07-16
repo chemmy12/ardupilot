@@ -30,13 +30,38 @@ bool SerBrdcst::init()
     return true;
 }
 
+#define maxMSOfFreeze   100
 void SerBrdcst::recvUpdate()
 {
     int16_t r,p;
-    if (recvData(r, p))
-        /* hal.console->printf("SerBrdcst: Received r=%f, p=%f\n", r/100.0, p/100.0) */{} ;
+    static int16_t oldr = 0, oldp = 0;
+    if (recvData(r, p)) {
+        /* hal.console->printf("SerBrdcst: Received r=%f, p=%f\n", r/100.0, p/100.0) */{};
+        if (r != oldr || p != oldp) {
+            _timeLastGoodData = AP_HAL::millis();
+            _roll = r;
+            _pitch = p;
+            _status = true;
+        }
+    }
+    else if (AP_HAL::millis() - _timeLastGoodData > maxMSOfFreeze) {
+        _status = false;
+        _pitch = 0;
+        _roll = 0;
+    }
+    AP::logger().Write("BANG", "TimeUS,stat,roll,pitch",
+                       "s-dd", // units: seconds, none, cd, cd
+                       "F-BB", // mult: 1e-6, 1, 1e-2, 1e-2
+                       "QHhh", // format: uint64_t, uint16_t, int16_t, int16_t
+                       AP_HAL::micros64(), _status, _roll, _pitch);
 }
 
+bool SerBrdcst::getRPS(int16_t &r, int16_t &p)
+{
+    r = _roll;
+    p = _pitch;
+    return _status;
+}
 void SerBrdcst::sendUpdate()
 {
     assert(1);
@@ -81,8 +106,6 @@ bool SerBrdcst::recvData(int16_t &roll, int16_t &pitch)
     roll = pitch = 0;
 
     if (_uart == nullptr) {
-        hal.console->printf("SerBrdcst::recvData() _uart is nullptr\n");
-//        init();
         return false;
     }
 
@@ -120,11 +143,11 @@ bool SerBrdcst::recvData(int16_t &roll, int16_t &pitch)
                     return true;
                 }
             }
-            else
-                hal.console->printf("SerBrdcst::recvData: byte %d+1 is %X (bad)\n", i, buf[i+1]);
+//            else
+//                hal.console->printf("SerBrdcst::recvData: byte %d+1 is %X (bad)\n", i, buf[i+1]);
         }
     }
-    hal.console->printf("SerBrdcst::recvData: no header found. db size=%d\n", sizeof(dataBlock));
+//    hal.console->printf("SerBrdcst::recvData: no header found. db size=%d\n", sizeof(dataBlock));
     return false;
 }
 

@@ -257,15 +257,15 @@ const AP_Scheduler::Task Copter::scheduler_tasks[] = {
 //    copter.mb4_encoder1.init();
     SCHED_TASK_CLASS(AKS16,             &copter.aks16,            update,           1, 100, 171),
 #ifdef APD_ESC
-    SCHED_TASK_CLASS(AP_APD_ESC,  &copter.apd_esc,   update,   5, 100, 200),
+    SCHED_TASK_CLASS(AP_APD_ESC,  &copter.apd_esc,   update,   50, 100, 200),
 #endif
 #ifdef SER_BRDCST
 #ifdef SER_BRDCST_RECV
     SCHED_TASK_CLASS(SerBrdcst,  &copter.SerBrdcst,   recvUpdate,   50, 100, 200),
 #endif
-//#ifdef SER_BRDCST_SEND
-//    SCHED_TASK_CLASS(SerBrdcst,  &copter.SerBrdcst,   sendUpdate,   100, 50, 200),
-//#endif
+#ifdef SER_BRDCST_SEND
+    SCHED_TASK_CLASS(SerBrdcst,  &copter.SerBrdcst,   sendUpdate,   100, 50, 200),
+#endif
 #endif
 };
 

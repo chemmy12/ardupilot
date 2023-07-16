@@ -37,6 +37,7 @@ public:
     bool recvData(int16_t &roll, int16_t &pitch);
     void recvUpdate();
     void sendUpdate();
+    bool getRPS(int16_t &r, int16_t &p);
 
 private:
     ComState comState;
@@ -46,7 +47,11 @@ private:
 
     bool checkCrc(dataBlock *db);
 
-};
+    uint16_t _status;
+    int16_t _roll;
+    int16_t _pitch;
+    uint32_t  _timeLastGoodData;
 
+};
 
 #endif //ARDUPILOT_SERIAL_SERBRDCST_H

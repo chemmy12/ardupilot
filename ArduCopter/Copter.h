@@ -240,6 +240,8 @@ public:
     friend class ModeAutorotate;
     friend class ModeTurtle;
 
+    friend class AC_CustomControl;
+
     Copter(void);
 
 private:

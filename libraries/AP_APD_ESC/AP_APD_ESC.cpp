@@ -142,12 +142,18 @@ float AP_APD_ESC::convert_temperature(uint16_t raw) const {
 }
 
 #define DATA_RESET_MS   500
+#define SEND_MS_PERIOD  250
 
 void AP_APD_ESC::sendMavlink(bool newData)
 {
     static uint16_t counter = 0;
+    static uint32_t lastSend = 0;
 
     _now = AP_HAL::millis();
+
+    if (_now - lastSend < SEND_MS_PERIOD)
+        return;
+    lastSend = _now;
 
     if (!newData && _now - _lastTime > DATA_RESET_MS) {
         _temperature[0] = 0;

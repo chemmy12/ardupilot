@@ -410,6 +410,18 @@ void Copter::notify_flight_mode() {
     notify.set_flight_mode_str(flightmode->name4());
 }
 
+#define BODY_CUSTOM_EMMO
+#ifdef BODY_CUSTOM_EMMO
+#define CTRL_MAX_STEP   0.05
+// calculates limited angle step
+inline float getAng(float prev, float trgt) {
+    if (trgt > prev)
+        return (trgt > prev + CTRL_MAX_STEP) ? prev + CTRL_MAX_STEP : trgt;
+    else
+        return (trgt < prev - CTRL_MAX_STEP) ? prev - CTRL_MAX_STEP : trgt;
+}
+#endif
+
 // get_pilot_desired_angle - transform pilot's roll or pitch input into a desired lean angle
 // returns desired angle in centi-degrees
 void Mode::get_pilot_desired_lean_angles(float &roll_out_cd, float &pitch_out_cd, float angle_max_cd, float angle_limit_cd) const
@@ -440,9 +452,40 @@ void Mode::get_pilot_desired_lean_angles(float &roll_out_cd, float &pitch_out_cd
 #else
     rc_input_to_roll_pitch(channel_roll->get_control_in()*(1.0/ROLL_PITCH_YAW_INPUT_MAX), channel_pitch->get_control_in()*(1.0/ROLL_PITCH_YAW_INPUT_MAX), angle_max_cd * 0.01,  angle_limit_cd * 0.01, roll_out_deg, pitch_out_deg);
 #endif
+
+#ifdef BODY_CUSTOM_EMMO
+
+    if (!copter.custom_control.is_safe_to_run()) {    // we are at custom control mode
+        int16_t r,p;
+        if (copter.SerBrdcst.getRPS(r, p)) {
+            roll_out_deg += r * 100.0;
+            pitch_out_deg += p * 100.0;
+        }
+    }
+
+    // Limit control speed
+    // define step change per cycle (1/100 of a sec)
+
+    static float prevRoll = 0;
+    static float prevPitch = 0;
+    roll_out_deg = getAng(prevRoll, roll_out_deg);
+    pitch_out_deg = getAng(prevPitch, pitch_out_deg);
+    prevRoll = roll_out_deg;
+    prevPitch = pitch_out_deg;
+#endif
     // Convert to centi-degrees
     roll_out_cd = roll_out_deg * 100.0;
     pitch_out_cd = pitch_out_deg * 100.0;
+
+
+//    if custom contrtolle is off:
+//    roll_out_cd += body angle;
+//    pitch_out_cd += body angle;
+//
+//    insert fade in and fade out logic:
+//    while custom controller is turning on or off
+//    while custom controller is off and body message is not valid
+
 //#ifdef ANGLE_LIMITS
 //    static int slow=0;
 //    if (slow++ % 20 == 0) {
