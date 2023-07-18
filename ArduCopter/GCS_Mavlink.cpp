@@ -3,6 +3,7 @@
 #include "GCS_Mavlink.h"
 #include <AP_RPM/AP_RPM_config.h>
 #include <AP_EFI/AP_EFI_config.h>
+#include "SerBrdcst.h"
 
 MAV_TYPE GCS_Copter::frame_type() const
 {
@@ -206,10 +207,16 @@ void GCS_MAVLINK_Copter::send_nav_controller_output() const
     }
     const Vector3f &targets = copter.attitude_control->get_att_target_euler_cd();
     const Mode *flightmode = copter.flightmode;
+
+    int16_t p,r;
+    copter.SerBrdcst.getRPS(r, p);
+
     mavlink_msg_nav_controller_output_send(
         chan,
-        targets.x * 1.0e-2f,
-        targets.y * 1.0e-2f,
+//        targets.x * 1.0e-2f,
+//        targets.y * 1.0e-2f,
+        p * 1.0e-2f,
+        r * 1.0e-2f,
         targets.z * 1.0e-2f,
         flightmode->wp_bearing() * 1.0e-2f,
         MIN(flightmode->wp_distance() * 1.0e-2f, UINT16_MAX),

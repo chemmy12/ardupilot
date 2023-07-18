@@ -162,16 +162,16 @@ void AP_APD_ESC::sendMavlink(bool newData)
 
     _now = AP_HAL::millis();
 
-    if (newData)
+    if (newData) {
         AP::logger().Write("APDE", "TimeUS,status,temp,volt,curr,tcurr,rpm",
-                       "s-OvAAq", // units: seconds, none, cd, cd
-                       "F------", // mult: 1e-6, 1, 1e-2, 1e-2
-                       "QBBfffH", // format: uint64_t, uint16_t, int16_t, int16_t
-                       AP_HAL::micros64(), decoded.status, decoded.temperature, decoded.voltage/100.0, decoded.current/100.0, decoded.totalCurrent/100.0, decoded.rpm);
+                           "s-OvAAq", // units: seconds, none, cd, cd
+                           "F------", // mult: 1e-6, 1, 1e-2, 1e-2
+                           "QBBfffH", // format: uint64_t, uint16_t, int16_t, int16_t
+                           AP_HAL::micros64(), decoded.status, decoded.temperature, decoded.voltage / 100.0,
+                           decoded.current / 100.0, decoded.totalCurrent / 100.0, decoded.rpm);
 
-
-    if (newData)
         _lastTime = _now;
+    }
 
     if (_now - lastSend < SEND_MS_PERIOD)
         return;
@@ -195,8 +195,12 @@ void AP_APD_ESC::sendMavlink(bool newData)
     }
     const uint16_t count[4] {counter, counter, counter, counter++};
 
-    mavlink_msg_esc_telemetry_1_to_4_send((mavlink_channel_t) 0, _temperature, _voltage, _current, _totalcurrent, _rpm, count);
-    mavlink_msg_esc_telemetry_1_to_4_send((mavlink_channel_t) 1, _temperature, _voltage, _current, _totalcurrent, _rpm, count);
+    for (int i = 0; i < 8; i++)
+        if (gcs().chan(i)) {
+            hal.console->printf("APD_ESC sending Mavlink to channel offset %d\n", i);
+            mavlink_msg_esc_telemetry_1_to_4_send((mavlink_channel_t) i, _temperature, _voltage, _current, _totalcurrent, _rpm, count);
+        }
+
 #ifdef APD_DEBUG
     hal.console->printf("APD_ESC: Sent Mavlink message??? count0=%d\n", count[0]);
 #endif
