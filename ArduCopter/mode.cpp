@@ -466,12 +466,12 @@ void Mode::get_pilot_desired_lean_angles(float &roll_out_cd, float &pitch_out_cd
     // Limit control speed
     // define step change per cycle (1/100 of a sec)
 
-    static float prevRoll = 0;
-    static float prevPitch = 0;
-    roll_out_deg = getAng(prevRoll, roll_out_deg);
-    pitch_out_deg = getAng(prevPitch, pitch_out_deg);
-    prevRoll = roll_out_deg;
-    prevPitch = pitch_out_deg;
+//    static float prevRoll = 0;
+//    static float prevPitch = 0;
+//    roll_out_deg = getAng(prevRoll, roll_out_deg);
+//    pitch_out_deg = getAng(prevPitch, pitch_out_deg);
+//    prevRoll = roll_out_deg;
+//    prevPitch = pitch_out_deg;
 #endif
     // Convert to centi-degrees
     roll_out_cd = roll_out_deg * 100.0;

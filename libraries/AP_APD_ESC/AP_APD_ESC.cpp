@@ -12,6 +12,10 @@
 #include <string.h>
 
 #include <GCS_MAVLink/GCS.h>
+#include <AP_Logger/AP_Logger.h>
+
+//#define APD_DEBUG
+
 
 extern const AP_HAL::HAL& hal;
 
@@ -25,7 +29,9 @@ AP_APD_ESC::AP_APD_ESC(void): uart(nullptr)
 
 void AP_APD_ESC::init() {
 
-//    gcs().send_text(MAV_SEVERITY_WARNING, "a");
+#ifdef APD_DEBUG
+    gcs().send_text(MAV_SEVERITY_WARNING, "APD_ESC::init()");
+#endif
     initialised = true;
 
     AP_SerialManager *serial_manager = AP_SerialManager::get_singleton();
@@ -41,7 +47,6 @@ void AP_APD_ESC::init() {
     }
 }
 
-
 extern void printn(uint8_t *p, int n, const char* h);
 
 void AP_APD_ESC::update() {
@@ -52,16 +57,21 @@ void AP_APD_ESC::update() {
 
 
     if (uart == nullptr) {
-//        hal.console->printf("APD_ESC: uart is not initialized; ");
+#ifdef APD_DEBUG
+        hal.console->printf("APD_ESC: uart is not initialized; ");
+#endif
         return;
     }
 
     uint32_t n = uart->available();
-//    hal.console->printf("APD_ESC: uart received %d chars", (int)n);
-
+#ifdef APD_DEBUG
+    hal.console->printf("APD_ESC: uart received %d chars", (int)n);
+#endif
     if (n < MsgSize) {
-//        if (n != 0)
-//            hal.console->printf("APD_ESC: received too few chars - %d bytes; ", (int)n);
+#ifdef APD_DEBUG
+        if (n != 0)
+            hal.console->printf("APD_ESC: received too few chars - %d bytes; ", (int)n);
+#endif
         sendMavlink(false);
         return;
     }
@@ -70,8 +80,9 @@ void AP_APD_ESC::update() {
         uart->read();
         n--;
     }
-
-//    hal.console->printf("APD_ESC: MsgSize=%d, n=%d\n", MsgSize, (int)n);
+#ifdef APD_DEBUG
+    hal.console->printf("APD_ESC: MsgSize=%d, n=%d\n", MsgSize, (int)n);
+#endif
 
     for (int i = 0; i < n; i++)      // copy received data to buffer
         rdata[i] = uart->read();
@@ -151,11 +162,22 @@ void AP_APD_ESC::sendMavlink(bool newData)
 
     _now = AP_HAL::millis();
 
+    if (newData)
+        AP::logger().Write("APDE", "TimeUS,status,temp,volt,curr,tcurr,rpm",
+                       "s-OvAAq", // units: seconds, none, cd, cd
+                       "F------", // mult: 1e-6, 1, 1e-2, 1e-2
+                       "QBBfffH", // format: uint64_t, uint16_t, int16_t, int16_t
+                       AP_HAL::micros64(), decoded.status, decoded.temperature, decoded.voltage/100.0, decoded.current/100.0, decoded.totalCurrent/100.0, decoded.rpm);
+
+
+    if (newData)
+        _lastTime = _now;
+
     if (_now - lastSend < SEND_MS_PERIOD)
         return;
     lastSend = _now;
 
-    if (!newData && _now - _lastTime > DATA_RESET_MS) {
+    if (_now - _lastTime > DATA_RESET_MS) {
         _temperature[0] = 0;
         _voltage[0] = 0;
         _current[0] = 0;
@@ -170,16 +192,14 @@ void AP_APD_ESC::sendMavlink(bool newData)
         _totalcurrent[0] = decoded.totalCurrent;
         _rpm[0] = decoded.rpm;
 
-        if (newData)
-            _lastTime = _now;
     }
     const uint16_t count[4] {counter, counter, counter, counter++};
 
-//    mavlink_msg_esc_telemetry_1_to_4_send(mavlink_channel_t chan, const uint8_t *temperature, const uint16_t *voltage, const uint16_t *current, const uint16_t *totalcurrent, const uint16_t *rpm, const uint16_t *count)
-//    mavlink_msg_esc_telemetry_1_to_4_send((mavlink_channel_t) mav_chan, temperature, voltage, current, totalcurrent, rpm, count);
+    mavlink_msg_esc_telemetry_1_to_4_send((mavlink_channel_t) 0, _temperature, _voltage, _current, _totalcurrent, _rpm, count);
     mavlink_msg_esc_telemetry_1_to_4_send((mavlink_channel_t) 1, _temperature, _voltage, _current, _totalcurrent, _rpm, count);
-
-//    hal.console->printf("APD_ESC: Sent Mavlink message??? count0=%d\n", count[0]);
+#ifdef APD_DEBUG
+    hal.console->printf("APD_ESC: Sent Mavlink message??? count0=%d\n", count[0]);
+#endif
 }
 
 void printn(uint8_t *p, int n, const char* h)

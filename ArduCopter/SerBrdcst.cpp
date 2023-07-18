@@ -51,9 +51,9 @@ void SerBrdcst::recvUpdate()
     }
     AP::logger().Write("BANG", "TimeUS,stat,roll,pitch",
                        "s-dd", // units: seconds, none, cd, cd
-                       "F-BB", // mult: 1e-6, 1, 1e-2, 1e-2
-                       "QHhh", // format: uint64_t, uint16_t, int16_t, int16_t
-                       AP_HAL::micros64(), _status, _roll, _pitch);
+                       "F---", // mult: 1e-6, 1, 1e-2, 1e-2
+                       "QHff", // format: uint64_t, uint16_t, int16_t, int16_t
+                       AP_HAL::micros64(), _status, _roll/100.0, _pitch/100.0);
 }
 
 bool SerBrdcst::getRPS(int16_t &r, int16_t &p)
