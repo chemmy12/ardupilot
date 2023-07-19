@@ -195,11 +195,14 @@ void AP_APD_ESC::sendMavlink(bool newData)
     }
     const uint16_t count[4] {counter, counter, counter, counter++};
 
-    for (int i = 0; i < 8; i++)
+    for (int i = 0; i < MAVLINK_COMM_NUM_BUFFERS; i++) {
         if (gcs().chan(i)) {
             hal.console->printf("APD_ESC sending Mavlink to channel offset %d\n", i);
-            mavlink_msg_esc_telemetry_1_to_4_send((mavlink_channel_t) i, _temperature, _voltage, _current, _totalcurrent, _rpm, count);
-        }
+            mavlink_msg_esc_telemetry_1_to_4_send((mavlink_channel_t) i, _temperature, _voltage, _current,
+                                                  _totalcurrent, _rpm, count);
+        } else
+            break;
+    }
 
 #ifdef APD_DEBUG
     hal.console->printf("APD_ESC: Sent Mavlink message??? count0=%d\n", count[0]);
