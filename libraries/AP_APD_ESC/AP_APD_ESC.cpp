@@ -166,9 +166,9 @@ void AP_APD_ESC::sendMavlink(bool newData)
         AP::logger().Write("APDE", "TimeUS,status,temp,volt,curr,tcurr,rpm",
                            "s-OvAAq", // units: seconds, none, cd, cd
                            "F------", // mult: 1e-6, 1, 1e-2, 1e-2
-                           "QBBfffH", // format: uint64_t, uint16_t, int16_t, int16_t
+                           "QBBfHHH", // format: uint64_t, uint16_t, int16_t, int16_t
                            AP_HAL::micros64(), decoded.status, decoded.temperature, decoded.voltage / 100.0,
-                           decoded.current / 100.0, decoded.totalCurrent / 100.0, decoded.rpm);
+                           decoded.current, decoded.totalCurrent, decoded.rpm);
 
         _lastTime = _now;
     }
