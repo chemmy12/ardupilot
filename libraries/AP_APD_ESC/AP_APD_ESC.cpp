@@ -188,8 +188,8 @@ void AP_APD_ESC::sendMavlink(bool newData)
         _temperature[0] = decoded.temperature;
         _temperature[1] = decoded.status;
         _voltage[0] = decoded.voltage;
-        _current[0] = decoded.current;
-        _totalcurrent[0] = decoded.totalCurrent;
+        _current[0] = decoded.current*100;
+        _totalcurrent[0] = decoded.totalCurrent*100;
         _rpm[0] = decoded.rpm;
 
     }
@@ -197,7 +197,9 @@ void AP_APD_ESC::sendMavlink(bool newData)
 
     for (int i = 0; i < MAVLINK_COMM_NUM_BUFFERS; i++) {
         if (gcs().chan(i)) {
+#ifdef APD_DEBUG
             hal.console->printf("APD_ESC sending Mavlink to channel offset %d\n", i);
+#endif
             mavlink_msg_esc_telemetry_1_to_4_send((mavlink_channel_t) i, _temperature, _voltage, _current,
                                                   _totalcurrent, _rpm, count);
         } else
