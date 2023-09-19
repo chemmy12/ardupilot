@@ -326,6 +326,11 @@ bool AKS16::check_mks16_reliable()
     static uint32_t unreliableTimer = 0;
 
     uint32_t now = AP_HAL::millis();
+
+    // At the first 5 seconds off the system boot - we return false and don't set CUSTOM_CTRL flag.
+    if (now < 5000)
+        return true;
+
     if ((encStatus & ~(SET_BIT(CUSTOM_CTRL))) == 0) {
         unreliableTimer = now;
         encStatus &= ~SET_BIT(CUSTOM_CTRL);

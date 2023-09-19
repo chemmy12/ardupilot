@@ -55,6 +55,7 @@ public:
     float get_i() const;
     float get_d() const;
     float get_ff();
+    float get_error()   { return _error; }
 
     // reset_I - reset the integrator
     void reset_I();

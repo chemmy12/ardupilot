@@ -80,6 +80,28 @@ Vector3f AC_CustomControl_PID::update()
     motor_out.z = 0;
 
 //    hal.console->printf("Pitch enc=%f, euler=%f, euler deg=%f motor.c=%f\n", pitch, attitude_euler[1], degrees(attitude_euler[1]), motor_out.y);
+    AP::logger().Write("CCLR", "TimeUS,eul0,roll,p,i,d,ff,err",
+                        "S-------", "F-------", "Qfffffff", // units, multi, format
+                        AP_HAL::micros64(),
+                        attitude_euler[0],
+                        roll,
+                        _pid_angle_roll2.get_p(),
+                        _pid_angle_roll2.get_i(),
+                        _pid_angle_roll2.get_d(),
+                        _pid_angle_roll2.get_ff(),
+                        _pid_angle_roll2.get_error()
+                        );
+    AP::logger().Write("CCLR", "TimeUS,eul0,roll,p,i,d,ff,err",
+                        "S-------", "F-------", "Qfffffff", // units, multi, format
+                        AP_HAL::micros64(),
+                        attitude_euler[1],
+                        pitch,
+                        _pid_angle_pitch2.get_p(),
+                        _pid_angle_pitch2.get_i(),
+                        _pid_angle_pitch2.get_d(),
+                        _pid_angle_pitch2.get_ff(),
+                        _pid_angle_pitch2.get_error()
+                        );
 
 //    hal.console->printf("AC_Custom_pid: pitch=%f, roll=%f, x=%f, y=%f", pitch, roll, motor_out.x, motor_out.y);
 
