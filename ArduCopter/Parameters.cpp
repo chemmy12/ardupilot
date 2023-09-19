@@ -733,33 +733,44 @@ const AP_Param::Info Copter::var_info[] = {
 
 
 #ifdef ANGLE_LIMITS
-        // @Param: ANGLE_LIMITS_HIGH
-        // @DisplayName: Angle Limits high
-        // @Description: Angle Limits high
+
+        // @Param: BODY_CMD_LIM
+        // @DisplayName: Angle body cmd limit
+        // @Description: Angle body cmd limit
         // @Range: 0 45
         // @User: Advanced
-    GSCALAR(ang_lim_high, "Angle_Lim_high", DEFAULT_ANGLE_LIMITS_HIGH),
+    GSCALAR(body_cmd_lim, "body_cmd_limit", DEFAULT_BODY_LIMITS_CMD_HIGH),
 
-        // @Param: ANGLE_LIMITS_LOW
-        // @DisplayName: Angle Limits low
-        // @Description: Angle Limits low
-        // @Range: -45 20
+        // @Param: ANG_PITCH_MAX
+        // @DisplayName: Angle pitch max
+        // @Description: Angle pitch max
+        // @Range: 0 45
         // @User: Advanced
-    GSCALAR(ang_lim_low, "Angle_Lim_low", DEFAULT_ANGLE_LIMITS_LOW),
+    GSCALAR(ang_pitch_max, "Angle_pitch_max", DEFAULT_ANGLE_PITCH_MAX),
 
-        // @Param: ANGLE_LIMITS_DIR
-        // @DisplayName: Angle Limits dir
-        // @Description: Angle Limits dir
-        // @Range: -360 360
+        // @Param: ANG_PITCH_MIN
+        // @DisplayName: Angle pitch min
+        // @Description: Angle pitch min
+        // @Range: 0 -45
         // @User: Advanced
-    GSCALAR(ang_lim_dir, "Angle_Lim_dir", DEFAULT_ANGLE_LIMITS_DIR),
+    GSCALAR(ang_pitch_min, "Angle_pitch_min", DEFAULT_ANGLE_PITCH_MIN),
 
-        // @Param: ANGLE_LIMITS_BAND
-        // @DisplayName: Angle Limits band
-        // @Description: Angle Limits band
-        // @Range: 0 120
+        // @Param: ANG_ROLL_MAX
+        // @DisplayName: Angle roll max
+        // @Description: Angle roll max
+        // @Range: 0 45
         // @User: Advanced
-    GSCALAR(ang_lim_band, "Angle_Lim_band", DEFAULT_ANGLE_LIMITS_BAND),
+    GSCALAR(ang_roll_max, "Angle_roll_max", DEFAULT_ANGLE_ROLL_MAX),
+
+        // @Param: ANG_ROLL_MIN
+        // @DisplayName: Angle roll min
+        // @Description: Angle roll min
+        // @Range: 0 -45
+        // @User: Advanced
+    GSCALAR(ang_roll_min, "Angle_roll_min", DEFAULT_ANGLE_ROLL_MIN),
+
+
+
 
 
 #endif

@@ -19,6 +19,8 @@ struct dataBlock {
     uint16_t    header;
     int16_t     pitch;
     int16_t     roll;
+    int16_t     target_pitch;
+    int16_t     target_roll;
 //    uint8_t     status;    // A spare.
     uint16_t    crc;
 };
@@ -33,11 +35,11 @@ public:
     ~SerBrdcst() {};
     bool init();
     void update() {}
-    bool sendData(int16_t roll, int16_t pitch);
-    bool recvData(int16_t &roll, int16_t &pitch);
+    bool sendData(int16_t roll, int16_t pitch, int16_t target_roll, int16_t target_pitch);
+    bool recvData(int16_t &roll, int16_t &pitch, int16_t &target_roll, int16_t &target_pitch);
     void recvUpdate();
     void sendUpdate();
-    bool getRPS(int16_t &r, int16_t &p);
+    bool getRPS(int16_t &r, int16_t &p, int16_t &tr, int16_t &tp);
 
 private:
     ComState comState;
@@ -50,6 +52,8 @@ private:
     uint16_t _status;
     int16_t _roll;
     int16_t _pitch;
+    int16_t _target_roll;
+    int16_t _target_pitch;
     uint32_t  _timeLastGoodData;
 
 };

@@ -422,6 +422,8 @@ inline float getAng(float prev, float trgt) {
 }
 #endif
 
+#define CONSTRAIN(v,min,max)    ((v < min)? min : ((v > max)? max : v))
+
 // get_pilot_desired_angle - transform pilot's roll or pitch input into a desired lean angle
 // returns desired angle in centi-degrees
 void Mode::get_pilot_desired_lean_angles(float &roll_out_cd, float &pitch_out_cd, float angle_max_cd, float angle_limit_cd) const
@@ -437,54 +439,29 @@ void Mode::get_pilot_desired_lean_angles(float &roll_out_cd, float &pitch_out_cd
     float roll_out_deg;
     float pitch_out_deg;
 
-#ifdef ANGLE_LIMITS
-    Vector2f thrust;
-    float thrust_angle;
-    float angle_limit;
-    thrust.x = channel_pitch->get_control_in();
-    thrust.y = channel_roll->get_control_in();
-    thrust_angle = Vector2f(-thrust.x, thrust.y).angle() * RAD_TO_DEG;
-    float deltaAng = abs(thrust_angle-g.ang_lim_dir);
-    if (deltaAng > 180)
-        deltaAng = 360 - deltaAng;
-    angle_limit = g.ang_lim_high - (g.ang_lim_high-g.ang_lim_low)*exp( -0.5*pow((deltaAng)/(g.ang_lim_band),2));
-    rc_input_to_roll_pitch(channel_roll->get_control_in()*(1.0/ROLL_PITCH_YAW_INPUT_MAX), channel_pitch->get_control_in()*(1.0/ROLL_PITCH_YAW_INPUT_MAX), angle_limit,  angle_limit, roll_out_deg, pitch_out_deg);
-#else
     rc_input_to_roll_pitch(channel_roll->get_control_in()*(1.0/ROLL_PITCH_YAW_INPUT_MAX), channel_pitch->get_control_in()*(1.0/ROLL_PITCH_YAW_INPUT_MAX), angle_max_cd * 0.01,  angle_limit_cd * 0.01, roll_out_deg, pitch_out_deg);
-#endif
 
 #ifdef BODY_CUSTOM_EMMO
 
-    if (!copter.custom_control.is_safe_to_run()) {    // we are at custom control mode
-        int16_t r,p;
-        if (copter.SerBrdcst.getRPS(r, p)) {
-            roll_out_deg += r / 100.0;
-            pitch_out_deg += p / 100.0;
+    int16_t r_cmd, p_cmd, r_cmd_tgt, p_cmd_tgt;
+
+    if (copter.SerBrdcst.getRPS(r_cmd, p_cmd, r_cmd_tgt, p_cmd_tgt) ) {     // returns angles in CD
+        if (copter.custom_control.is_safe_to_run()) {    // we are at custom control mode
+            roll_out_deg -= CONSTRAIN(r_cmd_tgt, (-g.body_cmd_lim*100), (g.body_cmd_lim*100));
+            pitch_out_deg -= CONSTRAIN(p_cmd_tgt, (-g.body_cmd_lim*100), (g.body_cmd_lim*100));
+        } else {
+            roll_out_deg += r_cmd / 100.0;
+            pitch_out_deg += p_cmd / 100.0;
         }
     }
 
-    // Limit control speed
-    // define step change per cycle (1/100 of a sec)
-
-//    static float prevRoll = 0;
-//    static float prevPitch = 0;
-//    roll_out_deg = getAng(prevRoll, roll_out_deg);
-//    pitch_out_deg = getAng(prevPitch, pitch_out_deg);
-//    prevRoll = roll_out_deg;
-//    prevPitch = pitch_out_deg;
 #endif
-    // Convert to centi-degrees
+    roll_out_deg = CONSTRAIN(roll_out_deg, g.ang_roll_min, g.ang_roll_max);
+    pitch_out_deg = CONSTRAIN(pitch_out_deg, g.ang_pitch_min, g.ang_pitch_max);
+
+    //     Convert to centi-degrees
     roll_out_cd = roll_out_deg * 100.0;
     pitch_out_cd = pitch_out_deg * 100.0;
-
-
-//    if custom contrtolle is off:
-//    roll_out_cd += body angle;
-//    pitch_out_cd += body angle;
-//
-//    insert fade in and fade out logic:
-//    while custom controller is turning on or off
-//    while custom controller is off and body message is not valid
 
 //#ifdef ANGLE_LIMITS
 //    static int slow=0;

@@ -28,7 +28,9 @@ void Copter::userhook_FastLoop()
 #ifdef SER_BRDCST_SEND
     int16_t pitch = copter.ahrs.pitch_sensor;     // units in centi-degrees
     int16_t roll = copter.ahrs.roll_sensor;
-    copter.SerBrdcst.sendData(roll, pitch);
+    float target_roll, target_pitch;
+    get_pilot_desired_lean_angles(target_roll, target_pitch, copter.aparm.angle_max, copter.aparm.angle_max);
+    copter.SerBrdcst.sendData(roll, pitch, (int16_t)(target_roll*100), (int16_t)(target_pitch*100);
 #endif
 
 }

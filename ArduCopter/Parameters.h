@@ -380,10 +380,11 @@ public:
         k_param_vehicle = 257, // vehicle common block of parameters
 
         k_param_aks16 = 258,
-        k_param_ang_lim_high = 260,
-        k_param_ang_lim_low,
-        k_param_ang_lim_dir,
-        k_param_ang_lim_band,
+        k_param_body_cmd_lim = 260,
+        k_param_ang_pitch_max,
+        k_param_ang_pitch_min,
+        k_param_ang_roll_max,
+        k_param_ang_roll_min,
 
         // the k_param_* space is 9-bits in size
         // 511: reserved
@@ -480,10 +481,11 @@ public:
 #endif
 
 #ifdef ANGLE_LIMITS
-    AP_Float                ang_lim_high;
-    AP_Float                ang_lim_low;
-    AP_Float                ang_lim_dir;
-    AP_Float                ang_lim_band;
+    AP_Float                body_cmd_lim;
+    AP_Float                ang_pitch_max;
+    AP_Float                ang_pitch_min;
+    AP_Float                ang_roll_max;
+    AP_Float                ang_roll_min;
 #endif
 
     // Note: keep initializers here in the same order as they are declared

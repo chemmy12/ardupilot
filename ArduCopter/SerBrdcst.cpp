@@ -33,14 +33,16 @@ bool SerBrdcst::init()
 #define maxMSOfFreeze   100
 void SerBrdcst::recvUpdate()
 {
-    int16_t r,p;
+    int16_t r, p, tr, tp;
     static int16_t oldr = 0, oldp = 0;
-    if (recvData(r, p)) {
+    if (recvData(r, p, tr, tp)) {
         /* hal.console->printf("SerBrdcst: Received r=%f, p=%f\n", r/100.0, p/100.0) */{};
         if (r != oldr || p != oldp) {
             _timeLastGoodData = AP_HAL::millis();
             _roll = r;
             _pitch = p;
+            _target_roll = tr;
+            _target_pitch = tp;
             _status = true;
         }
     }
@@ -48,18 +50,22 @@ void SerBrdcst::recvUpdate()
         _status = false;
         _pitch = 0;
         _roll = 0;
+        _target_roll = 0;
+        _target_pitch = 0;
     }
-    AP::logger().Write("BANG", "TimeUS,stat,roll,pitch",
-                       "s-dd", // units: seconds, none, cd, cd
-                       "F---", // mult: 1e-6, 1, 1e-2, 1e-2
-                       "QHff", // format: uint64_t, uint16_t, int16_t, int16_t
-                       AP_HAL::micros64(), _status, _roll/100.0, _pitch/100.0);
+    AP::logger().Write("BANG", "TimeUS,stat,roll,pitch, troll, tpitch",
+                       "s-dddd", // units: seconds, none, cd, cd
+                       "F-----", // mult: 1e-6, 1, 1e-2, 1e-2
+                       "QHffff", // format: uint64_t, uint16_t, int16_t, int16_t
+                       AP_HAL::micros64(), _status, _roll/100.0, _pitch/100.0, _target_roll/100.0, _target_pitch/100.0);
 }
 
-bool SerBrdcst::getRPS(int16_t &r, int16_t &p)
+bool SerBrdcst::getRPS(int16_t &r, int16_t &p, int16_t &tr, int16_t &tp)
 {
     r = _roll;
     p = _pitch;
+    tr = _target_roll;
+    tp = _target_pitch;
     return _status;
 }
 void SerBrdcst::sendUpdate()
@@ -72,7 +78,7 @@ void SerBrdcst::sendUpdate()
 
 
 // read the from the sensor
-bool SerBrdcst::sendData(int16_t roll, int16_t pitch)
+bool SerBrdcst::sendData(int16_t roll, int16_t pitch, int16_t target_roll, int16_t target_pitch)
 {
     if (_uart == nullptr) {
         hal.console->printf("SerBrdcst::sendData: _uart is nullptr\n");
@@ -89,6 +95,8 @@ bool SerBrdcst::sendData(int16_t roll, int16_t pitch)
     buf.header = HEADER;
     buf.pitch = pitch;
     buf.roll = roll;
+    buf.target_pitch = target_pitch;
+    buf.target_roll = target_roll;
     buf.crc = CRC_SEED;
     for (int i = 0; i < SIZE_OF_DATA; i++, cp++)
         buf.crc += *cp;
@@ -101,9 +109,10 @@ bool SerBrdcst::sendData(int16_t roll, int16_t pitch)
     return success;
 }
 
-bool SerBrdcst::recvData(int16_t &roll, int16_t &pitch)
+bool SerBrdcst::recvData(int16_t &roll, int16_t &pitch, int16_t &target_roll, int16_t &target_pitch)
 {
     roll = pitch = 0;
+    target_roll = target_pitch = 0;
 
     if (_uart == nullptr) {
         return false;
@@ -139,6 +148,8 @@ bool SerBrdcst::recvData(int16_t &roll, int16_t &pitch)
                 if (checkCrc(&db)) {
                     roll = db.roll;
                     pitch = db.pitch;
+                    target_roll = db.target_roll;
+                    target_pitch = db.target_pitch;
 //                    hal.console->printf("SerBrdcst::recvData: R=%2.2f P=%2.2f\n", roll/100.0, pitch/100.0);
                     return true;
                 }

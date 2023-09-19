@@ -208,8 +208,8 @@ void GCS_MAVLINK_Copter::send_nav_controller_output() const
     const Vector3f &targets = copter.attitude_control->get_att_target_euler_cd();
     const Mode *flightmode = copter.flightmode;
 
-    int16_t p,r;
-    copter.SerBrdcst.getRPS(r, p);
+    int16_t p,r, tr, tp;
+    copter.SerBrdcst.getRPS(r, p, tr, tp);
 
     mavlink_msg_nav_controller_output_send(
         chan,

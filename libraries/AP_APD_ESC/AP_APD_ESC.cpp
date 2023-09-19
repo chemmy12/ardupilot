@@ -50,6 +50,7 @@ void AP_APD_ESC::init() {
 extern void printn(uint8_t *p, int n, const char* h);
 
 void AP_APD_ESC::update() {
+    static float oldCurrent = 0;
     union {
         uint8_t rdata[MsgSize * 2];
         RPacket packet;
@@ -102,7 +103,12 @@ void AP_APD_ESC::update() {
                 decoded.temperature = (uint8_t)convert_temperature(le16toh(packet.temperature));
                 decoded.current = (uint16_t)(le16toh(packet.bus_current) * (1 / 12.5f));
                 decoded.rpm = (uint16_t)(le32toh(packet.erpm) / pole_count);
+
+                // handle current with some filtering
                 decoded.totalCurrent = le16toh(packet.motor_duty);
+                if (decoded.totalCurrent > 400 && oldCurrent < 200)
+                    decoded.totalCurrent /= 1000;   // it was sent most probably in mA
+                oldCurrent = decoded.totalCurrent;
 
                 decoded.status = le16toh(packet.reserved1) & 0xff;
 
