@@ -30,7 +30,7 @@ void Copter::userhook_FastLoop()
     int16_t roll = copter.ahrs.roll_sensor;
     float target_roll, target_pitch;
     get_pilot_desired_lean_angles(target_roll, target_pitch, copter.aparm.angle_max, copter.aparm.angle_max);
-    copter.SerBrdcst.sendData(roll, pitch, (int16_t)(target_roll*100), (int16_t)(target_pitch*100);
+    copter.SerBrdcst.sendData(roll, pitch, (int16_t)(target_roll), (int16_t)(target_pitch);
 #endif
 
 }

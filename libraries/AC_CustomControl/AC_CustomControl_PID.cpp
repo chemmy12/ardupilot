@@ -75,9 +75,14 @@ Vector3f AC_CustomControl_PID::update()
     // run rate controller
 //    Vector3f encoder_latest = _ahrs->get_gyro_latest();
     Vector3f motor_out;
-    motor_out.x = _pid_angle_roll2.update_all(degrees(attitude_euler[0]), roll, 1);
-    motor_out.y = _pid_angle_pitch2.update_all(degrees(attitude_euler[1]), pitch, 1);
+    motor_out.x = _pid_angle_roll2.update_all(degrees(attitude_euler[0]), roll, false);
+    motor_out.y = _pid_angle_pitch2.update_all(degrees(attitude_euler[1]), pitch, false);
     motor_out.z = 0;
+
+    static unsigned int divideLogSpeed = 0;
+
+    if (divideLogSpeed++ % 20)
+        return motor_out;
 
 //    hal.console->printf("Pitch enc=%f, euler=%f, euler deg=%f motor.c=%f\n", pitch, attitude_euler[1], degrees(attitude_euler[1]), motor_out.y);
     AP::logger().Write("CCLR", "TimeUS,eul0,roll,p,i,d,ff,err",
@@ -91,7 +96,7 @@ Vector3f AC_CustomControl_PID::update()
                         _pid_angle_roll2.get_ff(),
                         _pid_angle_roll2.get_error()
                         );
-    AP::logger().Write("CCLR", "TimeUS,eul0,roll,p,i,d,ff,err",
+    AP::logger().Write("CCLP", "TimeUS,eul0,roll,p,i,d,ff,err",
                         "S-------", "F-------", "Qfffffff", // units, multi, format
                         AP_HAL::micros64(),
                         attitude_euler[1],

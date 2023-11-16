@@ -53,7 +53,7 @@ void SerBrdcst::recvUpdate()
         _target_roll = 0;
         _target_pitch = 0;
     }
-    AP::logger().Write("BANG", "TimeUS,stat,roll,pitch, troll, tpitch",
+    AP::logger().Write("BANG", "TimeUS,stat,roll,pitch,troll,tpitch",
                        "s-dddd", // units: seconds, none, cd, cd
                        "F-----", // mult: 1e-6, 1, 1e-2, 1e-2
                        "QHffff", // format: uint64_t, uint16_t, int16_t, int16_t

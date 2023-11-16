@@ -739,35 +739,35 @@ const AP_Param::Info Copter::var_info[] = {
         // @Description: Angle body cmd limit
         // @Range: 0 45
         // @User: Advanced
-    GSCALAR(body_cmd_lim, "body_cmd_limit", DEFAULT_BODY_LIMITS_CMD_HIGH),
+    GSCALAR(body_cmd_lim, "BODY_CMD_LIMIT", DEFAULT_BODY_LIMITS_CMD_HIGH),
 
         // @Param: ANG_PITCH_MAX
         // @DisplayName: Angle pitch max
         // @Description: Angle pitch max
         // @Range: 0 45
         // @User: Advanced
-    GSCALAR(ang_pitch_max, "Angle_pitch_max", DEFAULT_ANGLE_PITCH_MAX),
+    GSCALAR(ang_pitch_max, "ANGLE_PITCH_MAX", DEFAULT_ANGLE_PITCH_MAX),
 
         // @Param: ANG_PITCH_MIN
         // @DisplayName: Angle pitch min
         // @Description: Angle pitch min
         // @Range: 0 -45
         // @User: Advanced
-    GSCALAR(ang_pitch_min, "Angle_pitch_min", DEFAULT_ANGLE_PITCH_MIN),
+    GSCALAR(ang_pitch_min, "ANGLE_PITCH_MIN", DEFAULT_ANGLE_PITCH_MIN),
 
         // @Param: ANG_ROLL_MAX
         // @DisplayName: Angle roll max
         // @Description: Angle roll max
         // @Range: 0 45
         // @User: Advanced
-    GSCALAR(ang_roll_max, "Angle_roll_max", DEFAULT_ANGLE_ROLL_MAX),
+    GSCALAR(ang_roll_max, "ANGLE_ROLL_MAX", DEFAULT_ANGLE_ROLL_MAX),
 
         // @Param: ANG_ROLL_MIN
         // @DisplayName: Angle roll min
         // @Description: Angle roll min
         // @Range: 0 -45
         // @User: Advanced
-    GSCALAR(ang_roll_min, "Angle_roll_min", DEFAULT_ANGLE_ROLL_MIN),
+    GSCALAR(ang_roll_min, "ANGLE_ROLL_MIN", DEFAULT_ANGLE_ROLL_MIN),
 
 
 
