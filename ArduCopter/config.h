@@ -693,7 +693,7 @@
 #define SER_BRDCST_RECV
 //#define SER_BRDCST_SEND
 
-#define APD_ESC
+// #define APD_ESC
 
 #define ANGLE_LIMITS
 #ifdef ANGLE_LIMITS
