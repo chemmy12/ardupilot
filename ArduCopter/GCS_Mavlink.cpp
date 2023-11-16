@@ -205,7 +205,7 @@ void GCS_MAVLINK_Copter::send_nav_controller_output() const
     if (!copter.ap.initialised) {
         return;
     }
-    const Vector3f &targets = copter.attitude_control->get_att_target_euler_cd();
+//    const Vector3f &targets = copter.attitude_control->get_att_target_euler_cd();
     const Mode *flightmode = copter.flightmode;
 
     int16_t p,r, tr, tp;
@@ -215,10 +215,12 @@ void GCS_MAVLINK_Copter::send_nav_controller_output() const
         chan,
 //        targets.x * 1.0e-2f,
 //        targets.y * 1.0e-2f,
+        r * 1.0e-2f,
+        p * 1.0e-2f,
+//        targets.z * 1.0e-2f,
+//        flightmode->wp_bearing() * 1.0e-2f,
         tr * 1.0e-2f,
         tp * 1.0e-2f,
-        targets.z * 1.0e-2f,
-        flightmode->wp_bearing() * 1.0e-2f,
         MIN(flightmode->wp_distance() * 1.0e-2f, UINT16_MAX),
         copter.pos_control->get_pos_error_z_cm() * 1.0e-2f,
         0,
