@@ -14,6 +14,11 @@
 #define AC_PID_DFILT_HZ_DEFAULT  20.0f   // default input filter frequency
 #define AC_PID_RESET_TC          0.16f   // Time constant for integrator reset decay to zero
 
+#include "AP_HAL/AP_HAL.h"
+extern const AP_HAL::HAL& hal;
+
+
+
 #include "AP_PIDInfo.h"
 
 /// @class	AC_PID

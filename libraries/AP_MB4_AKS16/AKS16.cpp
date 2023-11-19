@@ -328,7 +328,7 @@ bool AKS16::check_mks16_reliable()
     uint32_t now = AP_HAL::millis();
 
     // At the first 5 seconds off the system boot - we return false and don't set CUSTOM_CTRL flag.
-    if (now < 5000)
+    if (now < 10000)
         return true;
 
     if ((encStatus & ~(SET_BIT(CUSTOM_CTRL))) == 0) {

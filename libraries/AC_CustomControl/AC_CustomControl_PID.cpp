@@ -75,6 +75,8 @@ Vector3f AC_CustomControl_PID::update()
     // run rate controller
 //    Vector3f encoder_latest = _ahrs->get_gyro_latest();
     Vector3f motor_out;
+    _pid_angle_roll2.set_dt(0.0025);
+    _pid_angle_pitch2.set_dt(0.0025);
     motor_out.x = _pid_angle_roll2.update_all(degrees(attitude_euler[0]), roll, false);
     motor_out.y = _pid_angle_pitch2.update_all(degrees(attitude_euler[1]), pitch, false);
     motor_out.z = 0;

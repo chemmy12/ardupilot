@@ -411,16 +411,6 @@ void Copter::notify_flight_mode() {
 }
 
 #define BODY_CUSTOM_EMMO
-#ifdef BODY_CUSTOM_EMMO
-#define CTRL_MAX_STEP   0.20
-// calculates limited angle step
-inline float getAng(float prev, float trgt) {
-    if (trgt > prev)
-        return (trgt > prev + CTRL_MAX_STEP) ? prev + CTRL_MAX_STEP : trgt;
-    else
-        return (trgt < prev - CTRL_MAX_STEP) ? prev - CTRL_MAX_STEP : trgt;
-}
-#endif
 
 #define CONSTRAIN(v,min,max)    ((v < min)? min : ((v > max)? max : v))
 
@@ -447,8 +437,8 @@ void Mode::get_pilot_desired_lean_angles(float &roll_out_cd, float &pitch_out_cd
 
     if (copter.SerBrdcst.getRPS(r_cmd, p_cmd, r_cmd_tgt, p_cmd_tgt) ) {     // returns angles in CD
         if (copter.custom_control.is_safe_to_run()) {    // we are at custom control mode
-            roll_out_deg -= CONSTRAIN(r_cmd_tgt, (-g.body_cmd_lim*100), (g.body_cmd_lim*100));
-            pitch_out_deg -= CONSTRAIN(p_cmd_tgt, (-g.body_cmd_lim*100), (g.body_cmd_lim*100));
+            roll_out_deg -= CONSTRAIN(r_cmd_tgt/100.0, (-g.body_cmd_lim), (g.body_cmd_lim));
+            pitch_out_deg -= CONSTRAIN(p_cmd_tgt/100.0, (-g.body_cmd_lim), (g.body_cmd_lim));
         } else {
             roll_out_deg += r_cmd / 100.0;
             pitch_out_deg += p_cmd / 100.0;

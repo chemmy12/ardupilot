@@ -212,6 +212,7 @@ void GCS_MAVLINK_Copter::send_nav_controller_output() const
     copter.SerBrdcst.getRPS(r, p, tr, tp);
 
     mavlink_msg_nav_controller_output_send(
+            // mavlink_message_t *msgbuf, mavlink_channel_t chan,  float nav_roll, float nav_pitch, int16_t nav_bearing, int16_t target_bearing, uint16_t wp_dist, float alt_error, float aspd_error, float xtrack_error)
         chan,
 //        targets.x * 1.0e-2f,
 //        targets.y * 1.0e-2f,
@@ -219,11 +220,12 @@ void GCS_MAVLINK_Copter::send_nav_controller_output() const
         p * 1.0e-2f,
 //        targets.z * 1.0e-2f,
 //        flightmode->wp_bearing() * 1.0e-2f,
+        0,0,0,
         tr * 1.0e-2f,
         tp * 1.0e-2f,
-        MIN(flightmode->wp_distance() * 1.0e-2f, UINT16_MAX),
-        copter.pos_control->get_pos_error_z_cm() * 1.0e-2f,
-        0,
+//        MIN(flightmode->wp_distance() * 1.0e-2f, UINT16_MAX),
+//        copter.pos_control->get_pos_error_z_cm() * 1.0e-2f,
+//        0,
         flightmode->crosstrack_error() * 1.0e-2f);
 }
 
