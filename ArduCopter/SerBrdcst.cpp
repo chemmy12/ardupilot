@@ -53,6 +53,24 @@ void SerBrdcst::recvUpdate()
         _target_roll = 0;
         _target_pitch = 0;
     }
+
+    // dumping changes in target roll and pitch to max_speed per cycle
+    static int16_t  last_tr = 0;
+    static int16_t  last_tp = 0;
+    const int max_speed = 300;      // 300 centi degrees
+
+    if (_target_roll > last_tr + max_speed)
+        _target_roll = last_tr + max_speed;
+    else if (_target_roll < last_tr - max_speed)
+        _target_roll = last_tr - max_speed;
+    last_tr = _target_roll;
+    if (_target_pitch > last_tp + max_speed)
+        _target_pitch = last_tp + max_speed;
+    else if (_target_pitch < last_tp - max_speed)
+        _target_pitch = last_tp - max_speed;
+    last_tp = _target_pitch;
+
+
     AP::logger().Write("BANG", "TimeUS,stat,roll,pitch,troll,tpitch",
                        "s-dddd", // units: seconds, none, cd, cd
                        "F-----", // mult: 1e-6, 1, 1e-2, 1e-2
