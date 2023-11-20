@@ -739,7 +739,7 @@ const AP_Param::Info Copter::var_info[] = {
         // @Description: Angle body cmd limit
         // @Range: 0 45
         // @User: Advanced
-    GSCALAR(body_cmd_lim, "ANGLE_BODY_CMD_LIMIT", DEFAULT_BODY_LIMITS_CMD_HIGH),
+    GSCALAR(body_cmd_lim, "ANGLE_BODY_CLIM", DEFAULT_BODY_LIMITS_CMD_HIGH),
 
         // @Param: ANG_PITCH_MAX
         // @DisplayName: Angle pitch max

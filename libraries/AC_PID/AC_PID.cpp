@@ -142,18 +142,24 @@ float AC_PID::update_all(float target, float measurement, bool limit)
     if (_flags._reset_filter) {
         _flags._reset_filter = false;
         _target = target;
+		_sts_last = measurement;
         _error = _target - measurement;
         _derivative = 0.0f;
     } else {
-        float error_last = _error;
+//        float error_last = _error;
         _target += get_filt_T_alpha() * (target - _target);
         _error += get_filt_E_alpha() * ((_target - measurement) - _error);
 
         // calculate and filter derivative
-        if (_dt > 0.0f) {
-            float derivative = (_error - error_last) / _dt;
+        //if (_dt > 0.0f) {
+        //    float derivative = (_error - error_last) / _dt;
+        //    _derivative += get_filt_D_alpha() * (derivative - _derivative);
+        //}
+		if (_dt > 0.0f) {
+            float derivative = (measurement - _sts_last) / _dt;
             _derivative += get_filt_D_alpha() * (derivative - _derivative);
         }
+		_sts_last = measurement;
     }
 
     // update I term

@@ -32,6 +32,11 @@ protected:
     // angle P controller  objects
     AC_PID                _pid_angle_roll2;
     AC_PID                _pid_angle_pitch2;
+
+	AP_Float roll_kd2c;
+	AP_Float pitch_kd2c;
+	AP_Float d2c_max;
+
     //AC_PID                _p_angle_yaw2;
 
 	// rate PID controller  objects

@@ -1,7 +1,7 @@
 #include "AC_CustomControl_PID.h"
 
 #include <GCS_MAVLink/GCS.h>
-
+#include <AP_Math/AP_Math.h>
 
 #if CUSTOMCONTROL_PID_ENABLED
 
@@ -23,6 +23,20 @@ const AP_Param::GroupInfo AC_CustomControl_PID::var_info[] = {
     // @User: Standard
     AP_SUBGROUPINFO(_pid_angle_pitch2, "ANG_PIT_", 2, AC_CustomControl_PID, AC_PID),
 
+    // @Param: ROLL_D2C
+    // @DisplayName: PID Derivative Gain
+    // @Description: D Gain which produces an output that is proportional to the rate of change of the error
+    AP_GROUPINFO("ROLL_D2C", 3, AC_CustomControl_PID, roll_kd2c, 0),
+
+    // @Param: PITCH_D2C
+    // @DisplayName: PID Derivative Gain
+    // @Description: D Gain which produces an output that is proportional to the rate of change of the error
+    AP_GROUPINFO("PITCH_D2C", 4, AC_CustomControl_PID, pitch_kd2c, 0),
+
+	// @Param: D2C_MAX
+    // @DisplayName: PID Derivative Gain
+    // @Description: D Gain which produces an output that is proportional to the rate of change of the error
+    AP_GROUPINFO("D2C_MAX", 5, AC_CustomControl_PID, d2c_max, 0),
 
     AP_GROUPEND
 };
@@ -75,10 +89,15 @@ Vector3f AC_CustomControl_PID::update()
     // run rate controller
 //    Vector3f encoder_latest = _ahrs->get_gyro_latest();
     Vector3f motor_out;
-    _pid_angle_roll2.set_dt(0.0025);
-    _pid_angle_pitch2.set_dt(0.0025);
+    //_pid_angle_roll2.set_dt(0.0025);
+    //_pid_angle_pitch2.set_dt(0.0025);
     motor_out.x = _pid_angle_roll2.update_all(degrees(attitude_euler[0]), roll, false);
     motor_out.y = _pid_angle_pitch2.update_all(degrees(attitude_euler[1]), pitch, false);
+	// Cross of gyroscopic effect
+	float roll_d2c = constrain_float(_pid_angle_pitch2.get_d() * roll_kd2c , -d2c_max , d2c_max);
+    float pitch_d2c = constrain_float(_pid_angle_roll2.get_d() * pitch_kd2c , -d2c_max , d2c_max);
+    motor_out.x += roll_d2c;
+    motor_out.y += pitch_d2c;
     motor_out.z = 0;
 
     static unsigned int divideLogSpeed = 0;
@@ -87,25 +106,27 @@ Vector3f AC_CustomControl_PID::update()
         return motor_out;
 
 //    hal.console->printf("Pitch enc=%f, euler=%f, euler deg=%f motor.c=%f\n", pitch, attitude_euler[1], degrees(attitude_euler[1]), motor_out.y);
-    AP::logger().Write("CCLR", "TimeUS,cmd,sts,p,i,d,ff,err",
-                        "S-------", "F-------", "Qfffffff", // units, multi, format
+    AP::logger().Write("CCLR", "TimeUS,cmd,sts,p,i,d,d2c,ff,err",
+                        "S--------", "F--------", "Qffffffff", // units, multi, format
                         AP_HAL::micros64(),
                         degrees(attitude_euler[0]),
                         roll,
                         _pid_angle_roll2.get_p(),
                         _pid_angle_roll2.get_i(),
                         _pid_angle_roll2.get_d(),
+						roll_d2c,
                         _pid_angle_roll2.get_ff(),
                         _pid_angle_roll2.get_error()
                         );
-    AP::logger().Write("CCLP", "TimeUS,cmd,sts,p,i,d,ff,err",
-                        "S-------", "F-------", "Qfffffff", // units, multi, format
+    AP::logger().Write("CCLP", "TimeUS,cmd,sts,p,i,d,d2c,ff,err",
+                        "S--------", "F--------", "Qffffffff", // units, multi, format
                         AP_HAL::micros64(),
                         degrees(attitude_euler[1]),
                         pitch,
                         _pid_angle_pitch2.get_p(),
                         _pid_angle_pitch2.get_i(),
                         _pid_angle_pitch2.get_d(),
+						pitch_d2c,
                         _pid_angle_pitch2.get_ff(),
                         _pid_angle_pitch2.get_error()
                         );
