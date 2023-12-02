@@ -100,6 +100,18 @@ Vector3f AC_CustomControl_PID::update()
     motor_out.y += pitch_d2c;
     motor_out.z = 0;
 
+    static bool swashPlatesReseted = false;
+
+    if (aks16->needToLevelSwashPlate()) {
+        motor_out.x = 0;
+        motor_out.y = 0;
+        if (!swashPlatesReseted)
+            reset();
+        swashPlatesReseted = true;
+    }
+    else
+        swashPlatesReseted = false;
+
     static unsigned int divideLogSpeed = 0;
 
     if (divideLogSpeed++ % 20)

@@ -20,9 +20,16 @@ extern const AP_HAL::HAL& hal;
 
 class AKS16 {
 public:
-    enum status_flags {SCDERR, DELAYERR, AGSERR, SVALID1, SVALID5, ENC1RANGE, ENC2RANGE, ENC1STEP, ENC2STEP, MB4_TIMEOUT,
+    enum status_flags {SCDERR, DELAYERR, AGSERR, SVALID1, SVALID5, MB4_TIMEOUT,
             OTHER_ERROR, BAD_VER_REV, SLAVE_LOC, ENSCD_ERR, SVALID_ERR, BAD_SEMA,
-            ENC_FREEZE1, ENC_FREEZE2, DISABLE_ENC, CUSTOM_CTRL};
+            ENC1_RANGE, ENC2_RANGE,
+            ENC1_EX_RANGE, ENC2_EX_RANGE,
+            ENC1_STEP, ENC2_STEP,
+            ENC1_FREEZE, ENC2_FREEZE,                   // just mark a freeze cycle
+            ENC1_FILT_FREEZE, ENC2_FILT_FREEZE,         // Freeze and needs
+            ENC1_NOT_VALID, ENC2_NOT_VALID,
+            LEVEL_SWASH_PLATE,
+            CUSTOM_CTRL};
     AKS16();
     bool init();
     void update();
@@ -45,6 +52,7 @@ public:
 
     bool check_mks16_reliable();
     bool isCustCtlBadFlag();
+    bool needToLevelSwashPlate();
 //    void enableCustomCtrl(bool st);
 
     void setFlightMode(int v)   { advancedFlightMode = v; }
