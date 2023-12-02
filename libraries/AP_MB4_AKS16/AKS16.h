@@ -26,7 +26,6 @@ public:
             ENC1_EX_RANGE, ENC2_EX_RANGE,
             ENC1_STEP, ENC2_STEP,
             ENC1_FREEZE, ENC2_FREEZE,                   // just mark a freeze cycle
-            ENC1_FILT_FREEZE, ENC2_FILT_FREEZE,         // Freeze and needs
             ENC1_NOT_VALID, ENC2_NOT_VALID,
             LEVEL_SWASH_PLATE,
             CUSTOM_CTRL};
