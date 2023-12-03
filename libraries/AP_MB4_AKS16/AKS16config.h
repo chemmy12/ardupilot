@@ -7,6 +7,8 @@
 
 #define AP_AKS16_AVAILABLE  1
 
+#define AKS_DRIVER_FREQ     800
+
 // Params for conversion of encoders to Deg.
 //#define ERROR_VAL 999.999
 #define PERCENT_EXTENDER    10.0
@@ -21,6 +23,10 @@
 #define FREEZE_DURATION_MS  10
 #define MAX_FREEZE_MS       20
 #define BAD_ENC_MS          50
+
+// low pass filter params
+//#define LOW_PASS_FREQ   10
+
 
 
 #endif //ARDUPILOT2_AKS16CONFIG_H

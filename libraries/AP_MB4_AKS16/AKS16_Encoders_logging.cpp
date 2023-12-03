@@ -16,6 +16,8 @@ void AKS16::Write_MB4() // const
             enc2: encData2,
             encDeg1  : encDeg1,
             encDeg2  : encDeg2,
+            encDegFilt1  : lowPassEnc1.get(),
+            encDegFilt2  : lowPassEnc2.get(),
             encStatus   : encStatus
     };
     AP::logger().WriteBlock(&pkt, sizeof(pkt));

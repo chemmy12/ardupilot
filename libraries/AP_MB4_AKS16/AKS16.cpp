@@ -12,7 +12,7 @@ const AP_Param::GroupInfo AKS16::var_info[] = {
         // @Description: AKS calib
         // @Values: 0:Disabled, 1:Enabled
         // @User: Standard
-        AP_GROUPINFO_FLAGS("ENABLE", 10, AKS16, _enable, 0, AP_PARAM_FLAG_ENABLE),
+        AP_GROUPINFO_FLAGS("ENABLE", 11, AKS16, _enable, 0, AP_PARAM_FLAG_ENABLE),
 #endif
 
         // @Param: en1_degMin
@@ -83,6 +83,14 @@ const AP_Param::GroupInfo AKS16::var_info[] = {
         // @User: Advanced
         AP_GROUPINFO("en2_encMax",    9, AKS16, _en2_encMax, 1111111),
 
+        // @Param: lowPassFreq
+        // @DisplayName: AKS Low pass freq
+        // @Description: the frequency of low pass filter
+        // @Range: 0 1000000
+        // @Increment: 1
+        // @User: Advanced
+        AP_GROUPINFO("lowPassFreq",    10, AKS16, _lowPassFreq, 15),
+
         AP_GROUPEND
 };
 
@@ -97,6 +105,9 @@ AKS16::AKS16():
         AP_HAL::panic("AKS16 must be singleton");
     }
     _singleton = this;
+
+    lowPassEnc1.set_cutoff_frequency(AKS_DRIVER_FREQ, _lowPassFreq);
+    lowPassEnc2.set_cutoff_frequency(AKS_DRIVER_FREQ, _lowPassFreq);
 }
 
 // singleton instance
@@ -265,7 +276,7 @@ void AKS16::createBackProcess()
 {
     // Starting the backend process
     AP_HAL::OwnPtr<AP_HAL::SPIDevice> *devpp = mb4.get_devicepp();
-    (*devpp)->register_periodic_callback(1250, FUNCTOR_BIND_MEMBER(&AKS16::update_encoders, void));
+    (*devpp)->register_periodic_callback(1000000 / AKS_DRIVER_FREQ, FUNCTOR_BIND_MEMBER(&AKS16::update_encoders, void));
 
 }
 
@@ -414,6 +425,10 @@ bool AKS16::check_mks16_reliable()
             return false;
         }
     }
+
+
+
+
     if (now - unreliableTimer > BAD_ENC_MS) {
         if (!(encStatus & SET_BIT(CUSTOM_CTRL))) {
             encStatus |= SET_BIT(CUSTOM_CTRL);
@@ -480,8 +495,8 @@ uint32_t AKS16::getEncStatus() {
 
 void AKS16::update_encoders() {     // Backend process
 
-    encStatus &= (SET_BIT(CUSTOM_CTRL) | SET_BIT(ENC1_STEP) | SET_BIT(ENC2_STEP));      // resetting encoder status - All flags but CUSTOM_CTRL & ENCx_STEP
-
+    encStatus &= (SET_BIT(CUSTOM_CTRL) | SET_BIT(ENC1_STEP) | SET_BIT(ENC2_STEP) |      // resetting encoder status - All flags but CUSTOM_CTRL & ENCx_STEP
+                            SET_BIT(ENC1_FREEZE) | SET_BIT(ENC2_FREEZE));
     if (!seeingMB4) {
         encStatus |= SET_BIT(OTHER_ERROR);
         check_mks16_reliable();
@@ -560,6 +575,9 @@ void AKS16::update_encoders() {     // Backend process
     mb4.mb4_write_param(&mb4.MB4_HOLDBANK,0x00);
 
     checkconv_enc_vals(encDeg1, encDeg2);
+    lowPassEnc1.apply(encDeg1);
+    lowPassEnc2.apply(encDeg2);
+
 //    Write_MB4();    // Write to logger
 
     check_mks16_reliable();

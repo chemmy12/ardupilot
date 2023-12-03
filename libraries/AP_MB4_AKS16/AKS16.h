@@ -15,6 +15,8 @@
 #include <AP_Param/AP_Param.h>
 #include "mb4_1sf_driver.h"
 
+#include <Filter/LowPassFilter.h>
+
 extern const AP_HAL::HAL& hal;
 
 
@@ -70,8 +72,8 @@ private:
     uint32_t encData2;
     float encDeg1;
     float encDeg2;
-    float lowPassEnc1;
-    float lowPassEnc2;
+    LowPassFilterFloat lowPassEnc1;
+    LowPassFilterFloat lowPassEnc2;
     MB4 mb4;
     uint32_t encStatus;
 
@@ -84,6 +86,7 @@ private:
     AP_Float    _en2_degMax;
     AP_Int32    _en2_encMax;
     AP_Int8     _enable;
+    AP_Int32    _lowPassFreq;
 
     uint8_t     advancedFlightMode;
 
