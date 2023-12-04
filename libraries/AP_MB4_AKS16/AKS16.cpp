@@ -89,7 +89,7 @@ const AP_Param::GroupInfo AKS16::var_info[] = {
         // @Range: 0 1000000
         // @Increment: 1
         // @User: Advanced
-        AP_GROUPINFO("lowPassFreq",    10, AKS16, _lowPassFreq, 15),
+        AP_GROUPINFO("LP_Freq",    10, AKS16, _lowPassFreq, 15),
 
         AP_GROUPEND
 };
@@ -106,8 +106,8 @@ AKS16::AKS16():
     }
     _singleton = this;
 
-    lowPassEnc1.set_cutoff_frequency(AKS_DRIVER_FREQ, _lowPassFreq);
-    lowPassEnc2.set_cutoff_frequency(AKS_DRIVER_FREQ, _lowPassFreq);
+    lowPassEnc1.set_cutoff_frequency(AKS_DRIVER_FREQ, (float)_lowPassFreq);
+    lowPassEnc2.set_cutoff_frequency(AKS_DRIVER_FREQ, (float)_lowPassFreq);
 }
 
 // singleton instance
@@ -289,33 +289,29 @@ bool AKS16::checkconv_enc_vals(float &e1, float &e2)
 
     uint32_t now = AP_HAL::millis();
 
+	// Calculate encoder degrees
+    e1 = _en1_degMin + (double)(((int32_t )encData1) - _en1_encMin) * (_en1_degMax - _en1_degMin) / (_en1_encMax - _en1_encMin);
+	float e1Delta = abs(e1 - enc1old);
+	enc1old = e1;
+
     // Check encoder in range
     if (encData1 < _en1_encMin || encData1 > _en1_encMax) {
         encStatus |= SET_BIT(ENC1_RANGE);
         if ((encData1 < _en1_encMin * (1.0 - PERCENT_EXTENDER / 100.0)) || (encData1 > _en1_encMax * (1.0 + PERCENT_EXTENDER / 100.0))) {
             encStatus |= SET_BIT(ENC1_EX_RANGE);
+			if (now - exRangeTime1 > MAX_EX_RANGE_MS) {
+				encStatus |= SET_BIT(ENC1_NOT_VALID);
+			}
         } else {
             encStatus &= ~SET_BIT(ENC1_EX_RANGE);
+			exRangeTime1 = now;
         }
     }
     else {
         encStatus &= ~(SET_BIT(ENC1_RANGE) | SET_BIT(ENC1_EX_RANGE));
+		exRangeTime1 = now;
     }
 
-    // Calculate encoder degrees
-    e1 = _en1_degMin + (double)(((int32_t )encData1) - _en1_encMin) * (_en1_degMax - _en1_degMin) / (_en1_encMax - _en1_encMin);
-
-    // Check encoder valid / not valid
-    if (encStatus & SET_BIT(ENC1_EX_RANGE)) {
-        if (now - exRangeTime1 > MAX_EX_RANGE_MS) {
-            encStatus |= SET_BIT(ENC1_NOT_VALID);
-        }
-    }
-    else {
-        exRangeTime1 = now;
-    }
-
-    float e1Delta = abs(e1 - enc1old);
 
     // Check Freeze
     if (e1Delta > 0.000001) {
@@ -323,7 +319,7 @@ bool AKS16::checkconv_enc_vals(float &e1, float &e2)
         encStatus &= ~(SET_BIT(ENC1_FREEZE));
     }
     else {
-        if (now - frzTime1 > FREEZE_DURATION_MS || (encStatus & SET_BIT(ENC1_STEP))) {
+        if (now - frzTime1 > FREEZE_DURATION_MS || (encStatus & SET_BIT(ENC1_STEP)) || (encStatus & SET_BIT(ENC1_FREEZE))) { // add protection if FREEZE_DURATION_MS > MAX_FREEZE_MS
             encStatus |= SET_BIT(ENC1_FREEZE);
             if (now - frzTime1 > MAX_FREEZE_MS)
                 encStatus |= SET_BIT(ENC1_NOT_VALID);
@@ -337,7 +333,7 @@ bool AKS16::checkconv_enc_vals(float &e1, float &e2)
         encStatus &= ~SET_BIT(ENC1_STEP);
     }
 
-    enc1old = e1;
+
 
     // ENCODER 2
 
@@ -398,9 +394,6 @@ bool AKS16::checkconv_enc_vals(float &e1, float &e2)
     else
         encStatus &= ~SET_BIT(LEVEL_SWASH_PLATE);
 
-    if (encStatus & (SET_BIT(ENC1_RANGE) | SET_BIT(ENC2_RANGE))) {
-        return false;
-    }
     return true;
 }
 
@@ -420,21 +413,13 @@ bool AKS16::check_mks16_reliable()
         return true;
     }
     if (encStatus & (SET_BIT(ENC1_NOT_VALID) | SET_BIT(ENC2_NOT_VALID))) {
-        if (!(encStatus & SET_BIT(CUSTOM_CTRL))) {
-            encStatus |= SET_BIT(CUSTOM_CTRL);
-            return false;
-        }
+		encStatus |= SET_BIT(CUSTOM_CTRL);
+		return false;
     }
 
-
-
-
     if (now - unreliableTimer > BAD_ENC_MS) {
-        if (!(encStatus & SET_BIT(CUSTOM_CTRL))) {
-            encStatus |= SET_BIT(CUSTOM_CTRL);
-            return false;
-        }
-        encStatus |= SET_BIT(CUSTOM_CTRL);
+		encStatus |= SET_BIT(CUSTOM_CTRL);
+		return false;
     }
 
     return true;
@@ -589,4 +574,3 @@ void AKS16::update_encoders() {     // Backend process
     sema = SEMA_AVAIL;
     return ;
 }
-

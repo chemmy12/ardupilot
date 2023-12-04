@@ -7,7 +7,7 @@
 
 #define AP_AKS16_AVAILABLE  1
 
-#define AKS_DRIVER_FREQ     800
+#define AKS_DRIVER_FREQ     800.0
 
 // Params for conversion of encoders to Deg.
 //#define ERROR_VAL 999.999
@@ -20,7 +20,7 @@
 
 #define LOG_FREQ            100
 
-#define FREEZE_DURATION_MS  10
+#define FREEZE_DURATION_MS  20
 #define MAX_FREEZE_MS       20
 #define BAD_ENC_MS          50
 
