@@ -149,6 +149,8 @@ void AKS16::update()
     }
     else
         seeingMB4 = true;
+    lowPassEnc1.set_cutoff_frequency(AKS_DRIVER_FREQ, (float)_lowPassFreq);
+    lowPassEnc2.set_cutoff_frequency(AKS_DRIVER_FREQ, (float)_lowPassFreq);
 }
 
 
@@ -319,7 +321,7 @@ bool AKS16::checkconv_enc_vals(float &e1, float &e2)
         encStatus &= ~(SET_BIT(ENC1_FREEZE));
     }
     else {
-        if (now - frzTime1 > FREEZE_DURATION_MS || (encStatus & SET_BIT(ENC1_STEP)) || (encStatus & SET_BIT(ENC1_FREEZE))) { // add protection if FREEZE_DURATION_MS > MAX_FREEZE_MS
+        if (now - frzTime1 > FREEZE_DURATION_MS || (encStatus & SET_BIT(ENC1_STEP)) || (encStatus & SET_BIT(ENC1_FREEZE))) {
             encStatus |= SET_BIT(ENC1_FREEZE);
             if (now - frzTime1 > MAX_FREEZE_MS)
                 encStatus |= SET_BIT(ENC1_NOT_VALID);
@@ -337,33 +339,28 @@ bool AKS16::checkconv_enc_vals(float &e1, float &e2)
 
     // ENCODER 2
 
+    // Calculate encoder degrees
+    e2 = _en2_degMin + (double)(((int32_t )encData2) - _en2_encMin) * (_en2_degMax - _en2_degMin) / (_en2_encMax - _en2_encMin);
+    float e2Delta = abs(e2 - enc2old);
+	enc2old = e2;
+
     // Check encoder in range
     if (encData2 < _en2_encMin || encData2 > _en2_encMax) {
         encStatus |= SET_BIT(ENC2_RANGE);
         if ((encData2 < _en2_encMin * (1.0 - PERCENT_EXTENDER / 100.0)) || (encData2 > _en2_encMax * (1.0 + PERCENT_EXTENDER / 100.0))) {
             encStatus |= SET_BIT(ENC2_EX_RANGE);
+			if (now - exRangeTime2 > MAX_EX_RANGE_MS) {
+				encStatus |= SET_BIT(ENC2_NOT_VALID);
+			}
         } else {
             encStatus &= ~SET_BIT(ENC2_EX_RANGE);
+			exRangeTime2 = now;
         }
     }
     else {
         encStatus &= ~(SET_BIT(ENC2_RANGE) | SET_BIT(ENC2_EX_RANGE));
+		exRangeTime2 = now;
     }
-
-    // Calculate encoder degrees
-    e2 = _en2_degMin + (double)(((int32_t )encData2) - _en2_encMin) * (_en2_degMax - _en2_degMin) / (_en2_encMax - _en2_encMin);
-
-    // Check encoder valid / not valid
-    if (encStatus & SET_BIT(ENC2_EX_RANGE)) {
-        if (now - exRangeTime2 > MAX_EX_RANGE_MS) {
-            encStatus |= SET_BIT(ENC2_NOT_VALID);
-        }
-    }
-    else {
-        exRangeTime2 = now;
-    }
-
-    float e2Delta = abs(e2 - enc2old);
 
     // Check Freeze
     if (e2Delta > 0.000001) {
@@ -371,7 +368,7 @@ bool AKS16::checkconv_enc_vals(float &e1, float &e2)
         encStatus &= ~(SET_BIT(ENC2_FREEZE));
     }
     else {
-        if (now - frzTime2 > FREEZE_DURATION_MS || (encStatus & SET_BIT(ENC2_STEP))) {
+        if (now - frzTime2 > FREEZE_DURATION_MS || (encStatus & SET_BIT(ENC2_STEP)) || (encStatus & SET_BIT(ENC2_FREEZE))) {
             encStatus |= SET_BIT(ENC2_FREEZE);
             if (now - frzTime2 > MAX_FREEZE_MS)
                 encStatus |= SET_BIT(ENC2_NOT_VALID);
@@ -385,7 +382,6 @@ bool AKS16::checkconv_enc_vals(float &e1, float &e2)
         encStatus &= ~SET_BIT(ENC2_STEP);
     }
 
-    enc2old = e2;
 
     // Check if we need to level swash plate
     if (encStatus & (   SET_BIT(ENC1_EX_RANGE) | SET_BIT(ENC1_STEP) | SET_BIT(ENC1_FREEZE) |
@@ -407,19 +403,21 @@ bool AKS16::check_mks16_reliable()
     if (now < 10000)
         return true;
 
-    if ((encStatus & ~(SET_BIT(CUSTOM_CTRL))) == 0) {
+    if ((encStatus & ~(SET_BIT(CUSTOM_CTRL) | SET_BIT(ENC1_RANGE) | SET_BIT(ENC2_RANGE) |
+						SET_BIT(ENC1_EX_RANGE) | SET_BIT(ENC1_EX_RANGE) | SET_BIT(ENC1_STEP) | SET_BIT(ENC2_STEP) |
+						SET_BIT(ENC1_FREEZE) | SET_BIT(ENC2_FREEZE))) == 0) {
         unreliableTimer = now;
         encStatus &= ~SET_BIT(CUSTOM_CTRL);
-        return true;
+        // return true;
     }
     if (encStatus & (SET_BIT(ENC1_NOT_VALID) | SET_BIT(ENC2_NOT_VALID))) {
 		encStatus |= SET_BIT(CUSTOM_CTRL);
-		return false;
+		// return false;
     }
 
     if (now - unreliableTimer > BAD_ENC_MS) {
 		encStatus |= SET_BIT(CUSTOM_CTRL);
-		return false;
+		// return false;
     }
 
     return true;
